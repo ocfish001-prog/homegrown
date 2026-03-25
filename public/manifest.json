@@ -1,0 +1,13 @@
+{
+  "name": "Homegrown",
+  "short_name": "Homegrown",
+  "description": "Local enrichment for homeschool families",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#7D9B76",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Event {
+  id             String          @id @default(uuid())
+  externalId     String?
+  source         String
+  title          String
+  description    String?
+  startDate      DateTime
+  endDate        DateTime?
+  isFree         Boolean         @default(false)
+  cost           String?
+  imageUrl       String?
+  externalUrl    String
+  relevanceScore Int             @default(0)
+  isApproved     Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  venue          Venue?          @relation(fields: [venueId], references: [id])
+  venueId        String?
+  categories     EventCategory[]
+
+  @@unique([externalId, source])
+  @@index([startDate])
+  @@index([source])
+  @@map("events")
+}
+
+model Venue {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  lat       Decimal? @db.Decimal(10, 7)
+  lng       Decimal? @db.Decimal(10, 7)
+  createdAt DateTime @default(now())
+  events    Event[]
+
+  @@map("venues")
+}
+
+model Category {
+  id     String          @id @default(uuid())
+  slug   String          @unique
+  name   String
+  icon   String?
+  events EventCategory[]
+
+  @@map("categories")
+}
+
+model EventCategory {
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId    String
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+
+  @@id([eventId, categoryId])
+  @@map("event_categories")
+}
+
+model Organizer {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isSecular   Boolean  @default(false)
+  ageRange    String?
+  contactUrl  String?
+  lat         Decimal? @db.Decimal(10, 7)
+  lng         Decimal? @db.Decimal(10, 7)
+  city        String?
+  state       String?
+  isApproved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("organizers")
+}
+
+model VendorListing {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?
+  category     String?
+  websiteUrl   String?
+  contactEmail String?
+  lat          Decimal? @db.Decimal(10, 7)
+  lng          Decimal? @db.Decimal(10, 7)
+  city         String?
+  state        String?
+  isPromoted   Boolean  @default(false)
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@map("vendor_listings")
+}
+
+model SavedEvent {
+  id        String   @id @default(uuid())
+  eventId   String
+  sessionId String
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, sessionId])
+  @@map("saved_events")
+}

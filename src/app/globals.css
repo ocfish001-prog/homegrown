@@ -1,10 +1,12 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================
+   Homegrown Design System — Earthy Palette
+   ============================================= */
 :root {
+  /* Brand colors */
   --color-sage: #7D9B76;
   --color-sage-light: #A8C4A2;
   --color-mauve: #9B7D8A;
@@ -15,93 +17,68 @@
   --color-sky: #7BA3C0;
   --color-moss: #5C7A56;
   --color-warm-gray: #CFCBCA;
+
+  /* shadcn/ui CSS variable mappings (Tailwind v3 compatible) */
+  --background: 248 243 232; /* cream */
+  --foreground: 74 55 40;    /* bark */
+  --card: 255 255 255;
+  --card-foreground: 74 55 40;
+  --popover: 255 255 255;
+  --popover-foreground: 74 55 40;
+  --primary: 125 155 118;    /* sage */
+  --primary-foreground: 255 255 255;
+  --secondary: 207 203 202;  /* warm-gray */
+  --secondary-foreground: 74 55 40;
+  --muted: 240 237 233;
+  --muted-foreground: 140 128 112;
+  --accent: 191 156 177;     /* mauve-light */
+  --accent-foreground: 74 55 40;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 207 203 202;     /* warm-gray */
+  --input: 207 203 202;
+  --ring: 125 155 118;       /* sage */
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+    @apply border-stone/20;
+  }
+
+  body {
+    @apply bg-cream text-bark font-sans antialiased;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-bark;
+  }
+
+  a {
+    @apply text-sage hover:text-moss transition-colors;
+  }
+
+  /* Focus styles — WCAG 2.1 AA */
+  :focus-visible {
+    @apply outline-none ring-2 ring-sage ring-offset-2;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-}
 
-@layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+  /* Font utilities */
+  .font-heading {
+    font-family: var(--font-instrument-serif), Georgia, serif;
   }
-  :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-  }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+
+  .font-sans {
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 }
