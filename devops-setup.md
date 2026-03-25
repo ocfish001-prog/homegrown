@@ -6,8 +6,8 @@
 - Vercel CLI (optional for local deploy testing)
 
 ## GitHub Repository Setup
-1. The repo is already created at: https://github.com/ocfish001-prog/homegrown
-2. If recreating, run: `gh repo create homegrown --public --description "Local enrichment and community discovery for homeschool families"`
+1. The repo should already be created at: https://github.com/ocfish001-prog/homegrown
+2. If not, run: `gh repo create homegrown --public --description "Local enrichment and community discovery for homeschool families"`
 3. Add repository secrets in GitHub Settings → Secrets:
    - `DATABASE_URL` — Supabase connection string (pooled)
    - `DIRECT_URL` — Supabase direct connection string

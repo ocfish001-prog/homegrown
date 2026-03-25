@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://fake:fake@localhost:5432/homegrown_test' }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://fake:fake@localhost:5432/homegrown_test' }}
+          NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_DEFAULT_LAT: '37.7749'
+          NEXT_PUBLIC_DEFAULT_LNG: '-122.4194'
+          NEXT_PUBLIC_DEFAULT_RADIUS: '50'
+      - run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_DEFAULT_LAT: '37.7749'
+          NEXT_PUBLIC_DEFAULT_LNG: '-122.4194'
+          NEXT_PUBLIC_DEFAULT_RADIUS: '50'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm install -g @lhci/cli@0.14.x
+      - run: npm run build
+        env:
+          DATABASE_URL: 'postgresql://fake:fake@localhost:5432/homegrown_test'
+          DIRECT_URL: 'postgresql://fake:fake@localhost:5432/homegrown_test'
+          NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+          NEXT_PUBLIC_DEFAULT_LAT: '37.7749'
+          NEXT_PUBLIC_DEFAULT_LNG: '-122.4194'
+          NEXT_PUBLIC_DEFAULT_RADIUS: '50'
+      - run: lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
