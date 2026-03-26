@@ -44,6 +44,7 @@
 @layer base {
   * {
     @apply border-warm-gray/30;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Prevent horizontal scroll/zoom on mobile */
@@ -110,5 +111,20 @@
 
   .mb-nav {
     margin-bottom: 83px;
+  }
+
+  .page-enter {
+    animation: pageEnter 0.2s ease-out;
+  }
+
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

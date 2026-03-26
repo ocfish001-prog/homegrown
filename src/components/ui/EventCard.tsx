@@ -37,6 +37,21 @@ interface EventCardProps {
   style?: React.CSSProperties
 }
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  'Classes': '📚',
+  'Events': '🎉',
+  'Co-ops': '🤝',
+  'Camps': '⛺',
+  'Workshops': '🛠️',
+  'Field Trips': '🚌',
+  'Support Groups': '💙',
+  'Music': '🎵',
+  'Arts': '🎨',
+  'Community': '🌱',
+  'Sports': '⚽',
+  'Food & Drink': '🍎',
+}
+
 // Category to gradient map for fallback
 const CATEGORY_GRADIENTS: Record<string, string> = {
   'Classes': 'from-sage/20 via-cream to-sage/10',
@@ -106,6 +121,15 @@ export default function EventCard({ event, onSave, onClick, className, style }: 
             className="object-cover"
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
+        )}
+
+        {/* No image — show category placeholder */}
+        {!event.imageUrl && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl opacity-20 select-none" aria-hidden="true">
+              {CATEGORY_EMOJI[event.category] ?? '🌱'}
+            </span>
+          </div>
         )}
 
         {/* Category pill — bottom left */}

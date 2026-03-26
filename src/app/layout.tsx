@@ -18,9 +18,18 @@ const instrumentSerif = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  title: 'Homegrown',
-  description: 'Local enrichment for homeschool families on the Big Island, Hawaii',
+  title: {
+    default: 'Homegrown',
+    template: '%s — Homegrown',
+  },
+  description: 'Discover local classes, events, co-ops, and camps for homeschool families on the Big Island, Hawaii and the SF Bay Area.',
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'Homegrown',
+    description: 'Local enrichment for homeschool families',
+    type: 'website',
+    locale: 'en_US',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

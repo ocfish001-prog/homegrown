@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import {
   ArrowLeft,
   Share2,
@@ -73,6 +74,41 @@ export default function EventDetailPage() {
       setSaved(!saved)
     }
   }
+
+  // Dynamic OG tags / document title for event detail
+  useEffect(() => {
+    if (event) {
+      document.title = `${event.title} — Homegrown`
+      let ogTitle = document.querySelector('meta[property="og:title"]') as HTMLMetaElement | null
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta')
+        ogTitle.setAttribute('property', 'og:title')
+        document.head.appendChild(ogTitle)
+      }
+      ogTitle.setAttribute('content', event.title)
+
+      let ogDesc = document.querySelector('meta[property="og:description"]') as HTMLMetaElement | null
+      if (!ogDesc) {
+        ogDesc = document.createElement('meta')
+        ogDesc.setAttribute('property', 'og:description')
+        document.head.appendChild(ogDesc)
+      }
+      ogDesc.setAttribute('content', event.description?.slice(0, 160) ?? `${event.date} at ${event.location}`)
+
+      if (event.imageUrl) {
+        let ogImage = document.querySelector('meta[property="og:image"]') as HTMLMetaElement | null
+        if (!ogImage) {
+          ogImage = document.createElement('meta')
+          ogImage.setAttribute('property', 'og:image')
+          document.head.appendChild(ogImage)
+        }
+        ogImage.setAttribute('content', event.imageUrl)
+      }
+    }
+    return () => {
+      document.title = 'Homegrown'
+    }
+  }, [event])
 
   useEffect(() => {
     async function load() {
@@ -178,11 +214,13 @@ export default function EventDetailPage() {
       {/* Hero image / gradient */}
       <div className={cn('relative h-[220px] w-full bg-gradient-to-br', gradient)}>
         {event.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={event.imageUrl}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            className="absolute inset-0 object-cover"
+            sizes="100vw"
+            priority
           />
         )}
         {/* Back button */}

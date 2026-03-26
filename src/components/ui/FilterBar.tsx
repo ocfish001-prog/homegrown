@@ -56,7 +56,7 @@ export default function FilterBar({ onCategoryChange, onAgeRangeChange, onDateFi
       className={cn(
         'sticky top-0 z-40 bg-cream/95 backdrop-blur-sm',
         'border-b border-warm-gray/30',
-        'relative',
+        'relative will-change-transform',
         className
       )}
     >

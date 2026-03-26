@@ -27,7 +27,7 @@ export default function BottomNav() {
       )}
       aria-label="Main navigation"
     >
-      <div className="flex items-stretch h-[49px]">
+      <div className="flex items-stretch min-h-[56px]">
         {NAV_ITEMS.map(({ href, label, icon: Icon, comingSoon }) => {
           const isActive = pathname === href
 
@@ -36,7 +36,7 @@ export default function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                'flex-1 flex flex-col items-center justify-center gap-0.5 relative',
+                'flex-1 flex flex-col items-center justify-center gap-0.5 relative min-h-[44px]',
                 'transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-inset',
                 comingSoon

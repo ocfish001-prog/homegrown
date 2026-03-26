@@ -330,7 +330,7 @@ export async function GET(req: NextRequest) {
       headers: {
         // No CDN caching — each request fetches fresh from sources.
         // Next.js revalidate is set per-fetch() call in each source.
-        'Cache-Control': 'no-store',
+        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
       },
     })
   } catch (err) {

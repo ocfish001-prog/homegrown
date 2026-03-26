@@ -24,6 +24,7 @@ export default function HomePage() {
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [events, setEvents] = useState<EventCardData[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [setupMessages, setSetupMessages] = useState<string[]>([])
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -53,6 +54,7 @@ export default function HomePage() {
   // Fetch events from API
   const fetchEvents = useCallback(async () => {
     setLoading(true)
+    setError(false)
     try {
       const params = new URLSearchParams({
         lat: String(region.lat),
@@ -70,6 +72,7 @@ export default function HomePage() {
 
       const data: EventsApiResponse = await res.json()
       setEvents(data.events as EventCardData[])
+      setError(false)
 
       // Collect setup messages
       if (data.requiresSetup && data.setupMessage) {
@@ -80,6 +83,7 @@ export default function HomePage() {
     } catch (err) {
       console.error('[HomePage] Failed to fetch events:', err)
       setEvents([])
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -95,6 +99,17 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
+      {/* Screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        id="filter-announcer"
+      >
+        {!loading && `${events.length} events found${activeCategory !== 'All' ? ` in ${activeCategory}` : ''}${debouncedQuery ? ` for "${debouncedQuery}"` : ''}`}
+      </div>
+
       {/* Hero + Search */}
       <HeroSearch
         location={region.label}
@@ -102,14 +117,31 @@ export default function HomePage() {
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Date + Age Range filter bar â€” sticky */}
+      {/* Category + Date + Age Range filter bar â€" sticky */}
       <FilterBar key={regionKey}
         onCategoryChange={setActiveCategory}
         onAgeRangeChange={setActiveAgeRange}
         onDateFilterChange={setActiveDateFilter}
       />
 
-      {/* Setup banners â€” shown when APIs need configuration */}
+      {/* Error banner */}
+      {error && !loading && (
+        <div className="mx-4 my-3 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
+          <span className="text-2xl">⚠️</span>
+          <div>
+            <p className="text-[14px] font-medium text-red-700">Couldn&apos;t load events</p>
+            <p className="text-[13px] text-red-600">Check your connection and try again.</p>
+          </div>
+          <button
+            onClick={fetchEvents}
+            className="ml-auto text-[13px] font-medium text-red-700 underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Setup banners â€" shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
         <div className="px-lg pt-3 space-y-2">
           {setupMessages.map((msg, i) => (

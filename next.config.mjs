@@ -1,4 +1,9 @@
 import withPWAInit from 'next-pwa'
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -11,24 +16,14 @@ const withPWA = withPWAInit({
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'img.evbuc.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.evbuc.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.evbuc.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'sfpl.org',
-      },
+      { protocol: 'https', hostname: 'img.evbuc.com' },
+      { protocol: 'https', hostname: '**.evbuc.com' },
+      { protocol: 'https', hostname: 'cdn.evbuc.com' },
+      { protocol: 'https', hostname: 'sfpl.org' },
+      { protocol: 'https', hostname: '**.netlify.app' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
 }
 
-export default withPWA(nextConfig)
+export default withBundleAnalyzer(withPWA(nextConfig))

@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import EventCard, { type EventCardData } from './EventCard'
 import { SkeletonGrid } from './SkeletonCard'
 import EmptyState from './EmptyState'
 import { cn } from '@/lib/utils'
 import { useSavedEvents } from '@/hooks/useSavedEvents'
+
+const PAGE_SIZE = 24
 
 interface EventGridProps {
   events: EventCardData[]
@@ -29,6 +31,12 @@ export default function EventGrid({
   className,
 }: EventGridProps) {
   const { isSaved, toggleSaved, hydrated } = useSavedEvents()
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
+  // Reset pagination when events list changes (e.g. filter/region change)
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [events])
 
   // Sort saved events to the top, preserving relative order within each group
   const sortedEvents = useMemo(() => {
@@ -104,23 +112,39 @@ export default function EventGrid({
     )
   }
 
+  const visibleEvents = sortedEvents.slice(0, visibleCount)
+  const hasMore = visibleCount < sortedEvents.length
+
   return (
-    <div
-      className={cn(
-        'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-        'gap-2 md:gap-4',
-        className
+    <div className={cn('flex flex-col gap-4', className)}>
+      <div
+        className={cn(
+          'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+          'gap-2 md:gap-4',
+        )}
+      >
+        {visibleEvents.map((event, i) => (
+          <EventCard
+            key={event.id}
+            event={{ ...event, isSaved: isSaved(event.id) }}
+            onSave={toggleSaved}
+            onClick={onEventClick}
+            style={{ animationDelay: `${i * 60}ms` } as React.CSSProperties}
+          />
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="flex justify-center pt-2 pb-4">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="px-6 py-2.5 rounded-full bg-sage text-white text-[14px] font-medium hover:bg-sage-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2"
+          >
+            Load more
+          </button>
+        </div>
       )}
-    >
-      {sortedEvents.map((event, i) => (
-        <EventCard
-          key={event.id}
-          event={{ ...event, isSaved: isSaved(event.id) }}
-          onSave={toggleSaved}
-          onClick={onEventClick}
-          style={{ animationDelay: `${i * 60}ms` } as React.CSSProperties}
-        />
-      ))}
     </div>
   )
 }
