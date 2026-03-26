@@ -67,6 +67,10 @@ export async function GET(req: NextRequest) {
     }
 
     const want = (name: string) => sourceFilter === 'all' || sourceFilter === name
+    // SF Bay live sources must not run when region=hawaii (they return events without
+    // lat/lng which bypass the radius filter, causing cross-region bleed).
+    const isSFBay = regionParam !== 'hawaii'
+    const wantSFBay = (name: string) => isSFBay && want(name)
 
     // ─── Supabase — seeded/curated events ─────────────────────────────────────
     // Hawaii uses source='hawaii-manual' to isolate Hawaii-only events.
@@ -81,6 +85,8 @@ export async function GET(req: NextRequest) {
       : { events: [] as HomegrownEvent[] }
 
     // ─── Legacy sources (original signature, no incremental sync yet) ───────
+    // All legacy sources are SF Bay only — gate with wantSFBay to prevent
+    // cross-region bleed when Hawaii is selected.
     const [
       eventbriteResult,
       sfplResult,
@@ -91,14 +97,14 @@ export async function GET(req: NextRequest) {
       fourHResult,
       sffunResult,
     ] = await Promise.all([
-      want('eventbrite') ? fetchEventbriteEvents(lat, lng, radius) : emptyResult(),
-      want('sfpl')       ? fetchSFPLEvents()                        : emptyResult(),
-      want('sfpl')       ? fetchSFPLEventsImproved()                : emptyResult(),
-      want('smcl')       ? fetchSMCLEvents()                        : emptyResult(),
-      want('sfzoo')      ? fetchSFZooEvents()                       : emptyResult(),
-      want('calacademy') ? fetchCalAcademyEvents()                  : emptyResult(),
-      want('4h')         ? fetch4HEvents()                          : emptyResult(),
-      want('sffun')      ? fetchSFFunEvents()                       : emptyResult(),
+      wantSFBay('eventbrite') ? fetchEventbriteEvents(lat, lng, radius) : emptyResult(),
+      wantSFBay('sfpl')       ? fetchSFPLEvents()                        : emptyResult(),
+      wantSFBay('sfpl')       ? fetchSFPLEventsImproved()                : emptyResult(),
+      wantSFBay('smcl')       ? fetchSMCLEvents()                        : emptyResult(),
+      wantSFBay('sfzoo')      ? fetchSFZooEvents()                       : emptyResult(),
+      wantSFBay('calacademy') ? fetchCalAcademyEvents()                  : emptyResult(),
+      wantSFBay('4h')         ? fetch4HEvents()                          : emptyResult(),
+      wantSFBay('sffun')      ? fetchSFFunEvents()                       : emptyResult(),
     ])
 
     // ─── New sources — incremental sync engine ────────────────────────────────
@@ -110,21 +116,22 @@ export async function GET(req: NextRequest) {
       sjplSync, oaklandLibSync, smclBiblioSync,
       hiloPalaceSync,
     ] = await Promise.all([
-      want('funcheap')             ? getLastSync('funcheap')             : null,
-      want('nps')                  ? getLastSync('nps')                  : null,
-      want('ebparks')              ? getLastSync('ebparks')              : null,
-      want('bayareakidfun')        ? getLastSync('bayareakidfun')        : null,
-      want('cahomeschool')         ? getLastSync('cahomeschool')         : null,
-      want('contra-costa-ical')    ? getLastSync('contra-costa-ical')    : null,
-      want('eventbrite-sfbay')     ? getLastSync('eventbrite-sfbay')     : null,
-      want('chabot-ical')          ? getLastSync('chabot-ical')          : null,
-      want('lindsay-ical')         ? getLastSync('lindsay-ical')         : null,
-      want('badm-ical')            ? getLastSync('badm-ical')            : null,
-      want('chn-ical')             ? getLastSync('chn-ical')             : null,
-      want('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
-      want('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
-      want('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
-      // Hawaii sources
+      // SF Bay only sources — gated with wantSFBay
+      wantSFBay('funcheap')             ? getLastSync('funcheap')             : null,
+      wantSFBay('nps')                  ? getLastSync('nps')                  : null,
+      wantSFBay('ebparks')              ? getLastSync('ebparks')              : null,
+      wantSFBay('bayareakidfun')        ? getLastSync('bayareakidfun')        : null,
+      wantSFBay('cahomeschool')         ? getLastSync('cahomeschool')         : null,
+      wantSFBay('contra-costa-ical')    ? getLastSync('contra-costa-ical')    : null,
+      wantSFBay('eventbrite-sfbay')     ? getLastSync('eventbrite-sfbay')     : null,
+      wantSFBay('chabot-ical')          ? getLastSync('chabot-ical')          : null,
+      wantSFBay('lindsay-ical')         ? getLastSync('lindsay-ical')         : null,
+      wantSFBay('badm-ical')            ? getLastSync('badm-ical')            : null,
+      wantSFBay('chn-ical')             ? getLastSync('chn-ical')             : null,
+      wantSFBay('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
+      wantSFBay('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
+      wantSFBay('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
+      // Hawaii sources — only run when region=hawaii
       (want('hilo-palace-ical') && regionParam === 'hawaii') ? getLastSync('hilo-palace-ical') : null,
     ])
 

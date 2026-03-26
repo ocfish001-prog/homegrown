@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo } from 'react'
 import EventCard, { type EventCardData } from './EventCard'
 import { SkeletonGrid } from './SkeletonCard'
 import EmptyState from './EmptyState'
 import { cn } from '@/lib/utils'
+import { useSavedEvents } from '@/hooks/useSavedEvents'
 
 interface EventGridProps {
   events: EventCardData[]
@@ -27,16 +28,15 @@ export default function EventGrid({
   onEventClick,
   className,
 }: EventGridProps) {
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  const { isSaved, toggleSaved, hydrated } = useSavedEvents()
 
-  const handleSave = (id: string, saved: boolean) => {
-    setSavedIds((prev) => {
-      const next = new Set(prev)
-      if (saved) next.add(id)
-      else next.delete(id)
-      return next
-    })
-  }
+  // Sort saved events to the top, preserving relative order within each group
+  const sortedEvents = useMemo(() => {
+    if (!hydrated) return events
+    const saved = events.filter((e) => isSaved(e.id))
+    const unsaved = events.filter((e) => !isSaved(e.id))
+    return [...saved, ...unsaved]
+  }, [events, isSaved, hydrated])
 
   if (loading) {
     return <SkeletonGrid count={6} />
@@ -112,11 +112,11 @@ export default function EventGrid({
         className
       )}
     >
-      {events.map((event, i) => (
+      {sortedEvents.map((event, i) => (
         <EventCard
           key={event.id}
-          event={{ ...event, isSaved: savedIds.has(event.id) }}
-          onSave={handleSave}
+          event={{ ...event, isSaved: isSaved(event.id) }}
+          onSave={toggleSaved}
           onClick={onEventClick}
           style={{ animationDelay: `${i * 60}ms` } as React.CSSProperties}
         />
