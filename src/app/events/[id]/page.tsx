@@ -14,6 +14,8 @@ import {
   Navigation,
   Loader2,
   Leaf,
+  DollarSign,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { HomegrownEvent } from '@/lib/types'
@@ -217,27 +219,69 @@ export default function EventDetailPage() {
           {event.title}
         </h1>
 
-        {/* Meta info */}
-        <div className="space-y-2 mb-5">
+        {/* Meta info — all the details needed to decide whether to go */}
+        <div className="space-y-2.5 mb-5">
+          {/* Date + time */}
           <div className="flex items-start gap-2 text-[14px] text-warm-gray-dark">
             <CalendarDays className="w-4 h-4 mt-0.5 shrink-0 text-sage" aria-hidden="true" />
-            <span>{event.date}</span>
+            <div>
+              <span className="font-medium text-bark">{event.date}</span>
+              {event.endDateISO && (() => {
+                const end = new Date(event.endDateISO)
+                const endTime = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                return <span className="text-warm-gray-dark"> – {endTime}</span>
+              })()}
+            </div>
           </div>
+
+          {/* Location + full address */}
           <div className="flex items-start gap-2 text-[14px] text-warm-gray-dark">
             <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-sage" aria-hidden="true" />
             <div>
-              <span>{event.location}</span>
+              <span className="font-medium text-bark">{event.location}</span>
               {event.address && event.address !== event.location && (
-                <p className="text-[12px] text-warm-gray-dark mt-0.5">{event.address}</p>
+                <p className="text-[13px] text-warm-gray-dark mt-0.5">{event.address}</p>
               )}
             </div>
           </div>
+
+          {/* Distance */}
           {event.distance != null && (
             <div className="flex items-center gap-2 text-[13px] text-sage-dark">
               <Navigation className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{formatDistance(event.distance)} from you</span>
             </div>
           )}
+
+          {/* Cost */}
+          {event.price && (
+            <div className="flex items-center gap-2 text-[14px] text-warm-gray-dark">
+              <DollarSign className="w-4 h-4 shrink-0 text-sage" aria-hidden="true" />
+              <span className={cn(
+                'font-medium',
+                event.price === 'Free' ? 'text-moss' : 'text-bark'
+              )}>
+                {event.price}
+              </span>
+            </div>
+          )}
+
+          {/* Age range */}
+          {event.ageRange && (
+            <div className="flex items-center gap-2 text-[14px] text-warm-gray-dark">
+              <Users className="w-4 h-4 shrink-0 text-mauve" aria-hidden="true" />
+              <span>
+                {{
+                  young_kids: 'Young Kids (0–7)',
+                  older_kids: 'Older Kids (8–14)',
+                  all_ages: 'All Ages',
+                  family: 'Family',
+                }[event.ageRange] ?? event.ageRange}
+              </span>
+            </div>
+          )}
+
+          {/* Organizer */}
           {event.organizer && (
             <div className="flex items-center gap-2 text-[14px] text-warm-gray-dark">
               <User className="w-4 h-4 shrink-0 text-mauve" aria-hidden="true" />
@@ -302,17 +346,21 @@ export default function EventDetailPage() {
           </button>
         )}
 
-        {/* Description */}
+        {/* Description — full, no truncation */}
         {event.description ? (
-          <div className="mb-6">
+          <div className="mb-6 bg-cream-dark/40 rounded-2xl p-4">
             <h2 className="text-[15px] font-semibold text-bark mb-2">About this event</h2>
-            <p className="text-[14px] text-warm-gray-dark leading-relaxed whitespace-pre-line">
+            <p className="text-[14px] text-bark/80 leading-relaxed whitespace-pre-line">
               {event.description}
             </p>
           </div>
-        ) : null}
+        ) : (
+          <div className="mb-6 bg-cream-dark/40 rounded-2xl p-4">
+            <p className="text-[14px] text-warm-gray-dark italic">No description available.</p>
+          </div>
+        )}
 
-        {/* External link */}
+        {/* External link — secondary CTA */}
         {event.url && (
           <a
             href={event.url}
@@ -320,9 +368,9 @@ export default function EventDetailPage() {
             rel="noopener noreferrer"
             className={cn(
               'w-full flex items-center justify-center gap-2',
-              'h-11 rounded-full text-[14px] font-medium',
-              'bg-bark text-cream',
-              'hover:bg-bark/90 transition-colors',
+              'h-10 rounded-full text-[13px] font-medium',
+              'text-warm-gray-dark border border-warm-gray/30',
+              'hover:bg-warm-gray/5 transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage'
             )}
           >

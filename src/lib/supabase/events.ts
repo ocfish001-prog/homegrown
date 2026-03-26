@@ -35,13 +35,17 @@ interface SupabaseEventRow {
 
 function formatDate(isoString: string): string {
   const d = new Date(isoString)
-  return d.toLocaleDateString('en-US', {
+  // Format: "Sat, Apr 5 · 10:00 AM"
+  const datePart = d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
+  })
+  const timePart = d.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
   })
+  return `${datePart} · ${timePart}`
 }
 
 function mapAgeRange(raw: string | null): AgeRange | undefined {

@@ -10,9 +10,13 @@ import { formatDistance } from '@/lib/distance'
 export interface EventCardData {
   id: string
   title: string
+  description?: string
   category: string
-  date: string
+  date: string       // human-readable full date + time
+  dateISO?: string   // ISO 8601
+  endDateISO?: string
   location: string
+  address?: string
   organizer?: string
   imageUrl?: string
   isSaved?: boolean
@@ -21,6 +25,8 @@ export interface EventCardData {
   price?: string
   url?: string
   source?: string
+  ageRange?: string
+  tags?: string[]
 }
 
 interface EventCardProps {
@@ -158,13 +164,20 @@ export default function EventCard({ event, onSave, onClick, className, style }: 
         </h3>
 
         <div className="flex flex-col gap-0.5 mt-0.5">
+          {/* Date + time — full string already includes time from API */}
           <span className="text-[12px] text-warm-gray-dark flex items-center gap-1">
             <CalendarDays className="w-3 h-3 shrink-0" aria-hidden="true" />
             {event.date}
           </span>
-          <span className="text-[12px] text-warm-gray-dark flex items-center gap-1 truncate">
-            <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">{event.location}</span>
+          {/* Location + address (truncated) */}
+          <span className="text-[12px] text-warm-gray-dark flex items-start gap-1">
+            <MapPin className="w-3 h-3 shrink-0 mt-0.5" aria-hidden="true" />
+            <span className="truncate">
+              {event.location}
+              {event.address && event.address !== event.location && (
+                <span className="text-warm-gray-dark/70"> · {event.address}</span>
+              )}
+            </span>
           </span>
           {/* Distance from user */}
           {event.distance != null && (
@@ -175,6 +188,7 @@ export default function EventCard({ event, onSave, onClick, className, style }: 
           )}
         </div>
 
+        {/* Organizer */}
         {event.organizer && (
           <span className="text-[11px] text-mauve-dark font-medium mt-0.5 truncate">
             {event.organizer}
