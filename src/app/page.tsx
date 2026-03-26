@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import HeroSearch from '@/components/ui/HeroSearch'
@@ -15,9 +15,9 @@ import { useRegion } from '@/context/RegionContext'
 
 export default function HomePage() {
   const { region, regionKey } = useRegion()
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<EventCardData | null>(null)
 
-  // Filters — controlled state
+  // Filters â€” controlled state
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
   const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>('all')
@@ -59,7 +59,7 @@ export default function HomePage() {
     }
   }, [searchQuery])
 
-  // Fetch events — fires whenever any filter or region changes
+  // Fetch events â€” fires whenever any filter or region changes
   useEffect(() => {
     // Cancel any in-flight request
     if (abortRef.current) {
@@ -118,7 +118,8 @@ export default function HomePage() {
   }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
   function handleEventClick(id: string) {
-    setSelectedEventId(id)
+    const ev = events.find((e) => e.id === id) ?? null
+    setSelectedEvent(ev)
   }
 
   function resetFilters() {
@@ -133,8 +134,8 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* Event detail modal */}
       <EventDetailModal
-        eventId={selectedEventId}
-        onClose={() => setSelectedEventId(null)}
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
       />
       {/* Screen reader announcements */}
       <div
@@ -154,7 +155,7 @@ export default function HomePage() {
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Date + Age Range filter bar — sticky */}
+      {/* Category + Date + Age Range filter bar â€” sticky */}
       <FilterBar
         key={regionKey}
         onCategoryChange={setActiveCategory}
@@ -165,7 +166,7 @@ export default function HomePage() {
       {/* Error banner */}
       {error && !loading && (
         <div className="mx-4 my-3 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
-          <span className="text-2xl">⚠️</span>
+          <span className="text-2xl">âš ï¸</span>
           <div>
             <p className="text-[14px] font-medium text-red-700">Couldn&apos;t load events</p>
             <p className="text-[13px] text-red-600">Check your connection and try again.</p>
@@ -185,7 +186,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Setup banners — shown when APIs need configuration */}
+      {/* Setup banners â€” shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
         <div className="px-lg pt-3 space-y-2">
           {setupMessages.map((msg, i) => (
@@ -225,3 +226,4 @@ export default function HomePage() {
     </div>
   )
 }
+
