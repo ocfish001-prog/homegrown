@@ -1,0 +1,18 @@
+{
+  "desktop": {
+    "dropdownOpens": true,
+    "bothRegionsVisible": true,
+    "switchingWorks": false,
+    "eventsUpdate": true,
+    "notes": [
+      "CRITICAL BUG: <div aria-hidden=\"true\" class=\"fixed inset-0 z-[9998]\"> is intercepting ALL pointer events on the dropdown — normal users cannot click the options without force click"
+    ]
+  },
+  "mobile": {
+    "switcherVisible": false,
+    "dropdownOpens": false,
+    "switchingWorks": false,
+    "notes": []
+  },
+  "timestamp": "2026-03-26T18:37:16.416Z"
+}
