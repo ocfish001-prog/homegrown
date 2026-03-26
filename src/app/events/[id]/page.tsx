@@ -13,6 +13,7 @@ import {
   Calendar,
   Navigation,
   Loader2,
+  Leaf,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { HomegrownEvent } from '@/lib/types'
@@ -127,7 +128,7 @@ export default function EventDetailPage() {
   if (error || !event) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-6 text-center">
-        <span className="text-4xl">🌱</span>
+        <Leaf className="w-10 h-10 text-sage" aria-hidden="true" />
         <h1 className="text-[18px] font-semibold text-bark">{error ?? 'Event not found'}</h1>
         <p className="text-[14px] text-warm-gray-dark">
           This event may no longer be available.
