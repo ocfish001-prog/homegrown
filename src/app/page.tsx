@@ -9,20 +9,35 @@ import RegionSwitcher from '@/components/ui/RegionSwitcher'
 import SetupBanner from '@/components/ui/SetupBanner'
 import type { EventCardData } from '@/components/ui/EventCard'
 import type { AgeRange } from '@/lib/types'
+import type { DateFilter } from '@/components/ui/FilterBar'
 import type { EventsApiResponse } from '@/lib/types'
 import { useRegion } from '@/context/RegionContext'
 
 export default function HomePage() {
   const router = useRouter()
   const { region, regionKey } = useRegion()
+  const prevRegionKey = useRef<string>(regionKey)
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
+  const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [events, setEvents] = useState<EventCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [setupMessages, setSetupMessages] = useState<string[]>([])
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reset filters when region changes
+  useEffect(() => {
+    if (prevRegionKey.current !== regionKey) {
+      prevRegionKey.current = regionKey
+      setActiveCategory('All')
+      setActiveAgeRange('All')
+      setActiveDateFilter('all')
+      setSearchQuery('')
+      setDebouncedQuery('')
+    }
+  }, [regionKey])
 
   // Debounce search input
   useEffect(() => {
@@ -46,6 +61,7 @@ export default function HomePage() {
         region: regionKey,
         ...(activeCategory !== 'All' && { category: activeCategory }),
         ...(activeAgeRange !== 'All' && { ageRange: activeAgeRange }),
+        ...(activeDateFilter !== 'all' && { dateFilter: activeDateFilter }),
         ...(debouncedQuery.trim() && { q: debouncedQuery.trim() }),
       })
 
@@ -67,7 +83,7 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [region, regionKey, activeCategory, activeAgeRange, debouncedQuery])
+  }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
   useEffect(() => {
     fetchEvents()
@@ -86,10 +102,11 @@ export default function HomePage() {
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Age Range filter bar — sticky */}
+      {/* Category + Date + Age Range filter bar — sticky */}
       <FilterBar
         onCategoryChange={setActiveCategory}
         onAgeRangeChange={setActiveAgeRange}
+        onDateFilterChange={setActiveDateFilter}
       />
 
       {/* Setup banners — shown when APIs need configuration */}
@@ -124,9 +141,11 @@ export default function HomePage() {
           loading={loading}
           category={activeCategory}
           searchQuery={debouncedQuery}
+          regionKey={regionKey}
           onResetFilters={() => {
             setActiveCategory('All')
             setActiveAgeRange('All')
+            setActiveDateFilter('all')
             setSearchQuery('')
             setDebouncedQuery('')
           }}

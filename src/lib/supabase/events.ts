@@ -73,11 +73,14 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null): Promise
       .eq('isApproved', true)
       .gte('startDate', new Date().toISOString())
       .order('startDate', { ascending: true })
-      .limit(200)
+      .limit(500)
 
-    // Apply source filter if provided
+    // Apply source filter if provided (e.g. 'hawaii-manual' for Hawaii region).
+    // For SF Bay (null), exclude Hawaii-only events so they don't waste the limit budget.
     if (sourceFilter) {
       query = query.eq('source', sourceFilter)
+    } else {
+      query = query.neq('source', 'hawaii-manual')
     }
 
     const { data, error } = await query

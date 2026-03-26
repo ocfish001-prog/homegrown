@@ -7,9 +7,12 @@ import { CATEGORIES } from '@/lib/events'
 import type { AgeRange } from '@/lib/types'
 import { AGE_RANGE_LABELS } from '@/lib/types'
 
+export type DateFilter = 'all' | 'today' | 'weekend' | 'week' | 'month'
+
 interface FilterBarProps {
   onCategoryChange?: (category: string) => void
   onAgeRangeChange?: (ageRange: AgeRange | 'All') => void
+  onDateFilterChange?: (filter: DateFilter) => void
   className?: string
 }
 
@@ -20,9 +23,18 @@ const AGE_RANGE_OPTIONS: Array<{ value: AgeRange | 'All'; label: string }> = [
   { value: 'family', label: AGE_RANGE_LABELS.family },
 ]
 
-export default function FilterBar({ onCategoryChange, onAgeRangeChange, className }: FilterBarProps) {
+const DATE_FILTER_OPTIONS: Array<{ value: DateFilter; label: string }> = [
+  { value: 'all', label: '📅 All Dates' },
+  { value: 'today', label: '🌅 Today' },
+  { value: 'weekend', label: '🎉 This Weekend' },
+  { value: 'week', label: '📆 This Week' },
+  { value: 'month', label: '🗓️ This Month' },
+]
+
+export default function FilterBar({ onCategoryChange, onAgeRangeChange, onDateFilterChange, className }: FilterBarProps) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
+  const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>('all')
 
   const handleCategorySelect = (cat: string) => {
     setActiveCategory(cat)
@@ -32,6 +44,11 @@ export default function FilterBar({ onCategoryChange, onAgeRangeChange, classNam
   const handleAgeRangeSelect = (ar: AgeRange | 'All') => {
     setActiveAgeRange(ar)
     onAgeRangeChange?.(ar)
+  }
+
+  const handleDateFilterSelect = (df: DateFilter) => {
+    setActiveDateFilter(df)
+    onDateFilterChange?.(df)
   }
 
   return (
@@ -62,6 +79,23 @@ export default function FilterBar({ onCategoryChange, onAgeRangeChange, classNam
             active={activeCategory === cat}
             onSelect={() => handleCategorySelect(cat)}
             onDismiss={activeCategory === cat && cat !== 'All' ? () => handleCategorySelect('All') : undefined}
+          />
+        ))}
+      </div>
+
+      {/* Date filter row */}
+      <div
+        className="flex items-center gap-2 px-lg pb-2 overflow-x-auto scrollbar-hide"
+        role="group"
+        aria-label="Filter by date"
+      >
+        {DATE_FILTER_OPTIONS.map(({ value, label }) => (
+          <CategoryPill
+            key={value}
+            label={label}
+            active={activeDateFilter === value}
+            onSelect={() => handleDateFilterSelect(value)}
+            onDismiss={activeDateFilter === value && value !== 'all' ? () => handleDateFilterSelect('all') : undefined}
           />
         ))}
       </div>

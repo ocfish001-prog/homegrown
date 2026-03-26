@@ -28,6 +28,7 @@ import { fetchContraCostaIcalEvents } from '@/lib/sources/contra-costa-ical'
 import { fetchEventbriteSFBayEvents } from '@/lib/sources/eventbrite-sfbay'
 import { fetchChabotIcalEvents, fetchLindsayIcalEvents, fetchBADMIcalEvents, fetchCHNIcalEvents } from '@/lib/sources/wordpress-ical'
 import { fetchSJPLBiblioEvents, fetchOaklandLibraryEvents, fetchSMCLBiblioEvents } from '@/lib/sources/bibliocommons'
+import { fetchHiloPalaceIcalEvents } from '@/lib/sources/hilo-palace-ical'
 import { runSourceSync, getLastSync } from '@/lib/sync-engine'
 import { haversineDistance } from '@/lib/distance'
 import { classifyEventAgeRanges } from '@/lib/age-range'
@@ -57,6 +58,7 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get('q') ?? ''
     const sourceFilter = searchParams.get('source') ?? 'all'
     const ageRangeFilter = searchParams.get('ageRange') ?? 'All'
+    const dateFilter = searchParams.get('dateFilter') ?? 'all'
     // Region param: 'hawaii' | 'sfbay' | null (null = no filter)
     const regionParam = searchParams.get('region') ?? null
 
@@ -106,6 +108,7 @@ export async function GET(req: NextRequest) {
       contraCostaSync, eventbriteSFBaySync,
       chabotSync, lindsaySync, badmSync, chnSync,
       sjplSync, oaklandLibSync, smclBiblioSync,
+      hiloPalaceSync,
     ] = await Promise.all([
       want('funcheap')             ? getLastSync('funcheap')             : null,
       want('nps')                  ? getLastSync('nps')                  : null,
@@ -121,6 +124,8 @@ export async function GET(req: NextRequest) {
       want('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
       want('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
       want('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
+      // Hawaii sources
+      (want('hilo-palace-ical') && regionParam === 'hawaii') ? getLastSync('hilo-palace-ical') : null,
     ])
 
     const empty = { events: [] as HomegrownEvent[], report: null }
@@ -131,6 +136,7 @@ export async function GET(req: NextRequest) {
       contraCostaResult, eventbriteSFBayResult,
       chabotResult, lindsayResult, badmResult, chnResult,
       sjplResult2, oaklandLibResult, smclBiblioResult,
+      hiloPalaceResult,
     ] = await Promise.all([
       funcheapSync
         ? runSourceSync('funcheap', (ls, et) => fetchFuncheapEvents(ls, et))
@@ -174,6 +180,9 @@ export async function GET(req: NextRequest) {
       smclBiblioSync
         ? runSourceSync('smcl-bibliocommons', (ls, et) => fetchSMCLBiblioEvents(ls, et))
         : empty,
+      hiloPalaceSync
+        ? runSourceSync('hilo-palace-ical', (ls, et) => fetchHiloPalaceIcalEvents(ls, et))
+        : empty,
     ])
 
     // Merge SFPL sources, deduplicate by title+date
@@ -206,6 +215,7 @@ export async function GET(req: NextRequest) {
       ...sjplResult2.events,
       ...oaklandLibResult.events,
       ...smclBiblioResult.events,
+      ...hiloPalaceResult.events,
     ]
 
     // Classify age ranges for all events
@@ -223,6 +233,40 @@ export async function GET(req: NextRequest) {
     allEvents = allEvents.filter((ev) =>
       ev.distance == null ? true : ev.distance <= radius
     )
+
+    // Filter by date
+    if (dateFilter !== 'all') {
+      const now = new Date()
+      allEvents = allEvents.filter((ev) => {
+        if (!ev.dateISO) return true // keep events without a date
+        const d = new Date(ev.dateISO)
+        if (dateFilter === 'today') {
+          return d.toDateString() === now.toDateString()
+        }
+        if (dateFilter === 'weekend') {
+          // This Friday through Sunday (or next weekend if past Sunday)
+          const dayOfWeek = now.getDay() // 0=Sun, 1=Mon, ..., 6=Sat
+          const daysUntilFri = (5 - dayOfWeek + 7) % 7
+          const fri = new Date(now)
+          fri.setDate(now.getDate() + daysUntilFri)
+          fri.setHours(0, 0, 0, 0)
+          const mon = new Date(fri)
+          mon.setDate(fri.getDate() + 3)
+          return d >= fri && d < mon
+        }
+        if (dateFilter === 'week') {
+          const weekEnd = new Date(now)
+          weekEnd.setDate(now.getDate() + 7)
+          return d >= now && d <= weekEnd
+        }
+        if (dateFilter === 'month') {
+          const monthEnd = new Date(now)
+          monthEnd.setDate(now.getDate() + 30)
+          return d >= now && d <= monthEnd
+        }
+        return true
+      })
+    }
 
     // Filter by category
     if (category !== 'All') {

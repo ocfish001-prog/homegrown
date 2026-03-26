@@ -11,6 +11,7 @@ interface EventGridProps {
   loading?: boolean
   category?: string
   searchQuery?: string
+  regionKey?: string
   onResetFilters?: () => void
   onEventClick?: (id: string) => void
   className?: string
@@ -21,6 +22,7 @@ export default function EventGrid({
   loading = false,
   category = 'All',
   searchQuery = '',
+  regionKey = 'hawaii',
   onResetFilters,
   onEventClick,
   className,
@@ -55,6 +57,24 @@ export default function EventGrid({
       )
     }
 
+    // Region-specific empty state
+    if (category === 'All' && regionKey === 'sfbay') {
+      return (
+        <EmptyState
+          icon="🌉"
+          headline="Loading SF Bay Events…"
+          body="We're pulling in events from parks, libraries, and family venues across the Bay Area. If this keeps showing, try refreshing."
+          primaryAction={{
+            label: 'Refresh',
+            onClick: () => {
+              onResetFilters?.()
+              window.location.reload()
+            },
+          }}
+        />
+      )
+    }
+
     return (
       <EmptyState
         icon={category === 'All' ? '🌱' : '🔍'}
@@ -65,7 +85,7 @@ export default function EventGrid({
         }
         body={
           category === 'All'
-            ? 'Connect Eventbrite to see real local events, or try expanding your radius.'
+            ? 'Try expanding your radius or check back soon for new events.'
             : `Try expanding your area or browse all event types.`
         }
         primaryAction={{

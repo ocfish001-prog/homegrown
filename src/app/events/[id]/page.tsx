@@ -47,6 +47,33 @@ export default function EventDetailPage() {
   const [saved, setSaved] = useState(false)
   const [shareSuccess, setShareSuccess] = useState(false)
 
+  // Load saved state from localStorage
+  useEffect(() => {
+    if (!id) return
+    try {
+      const raw = localStorage.getItem('homegrown-saved-events')
+      const savedIds: string[] = raw ? JSON.parse(raw) : []
+      setSaved(savedIds.includes(id))
+    } catch {
+      // ignore
+    }
+  }, [id])
+
+  function toggleSaved() {
+    if (!id) return
+    try {
+      const raw = localStorage.getItem('homegrown-saved-events')
+      const savedIds: string[] = raw ? JSON.parse(raw) : []
+      const newIds = saved
+        ? savedIds.filter((x) => x !== id)
+        : [...savedIds, id]
+      localStorage.setItem('homegrown-saved-events', JSON.stringify(newIds))
+      setSaved(!saved)
+    } catch {
+      setSaved(!saved)
+    }
+  }
+
   useEffect(() => {
     async function load() {
       setLoading(true)
@@ -137,7 +164,7 @@ export default function EventDetailPage() {
         </p>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
           className="mt-2 px-4 py-2 rounded-full bg-sage text-white text-[14px] font-medium hover:bg-sage-dark transition-colors"
         >
           Go back
@@ -161,7 +188,7 @@ export default function EventDetailPage() {
         {/* Back button */}
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => (window.history.length > 1 ? router.back() : router.push('/'))}
           aria-label="Go back"
           className={cn(
             'absolute top-4 left-4',
@@ -245,6 +272,25 @@ export default function EventDetailPage() {
             </div>
           </div>
 
+          {/* Get Directions */}
+          {(event.address || event.location) && (() => {
+            const destination = encodeURIComponent(event.address ?? event.location)
+            const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`
+            return (
+              <div className="flex items-start gap-2 text-[14px]">
+                <Navigation className="w-4 h-4 mt-0.5 shrink-0 text-sage" aria-hidden="true" />
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-sage-dark hover:underline"
+                >
+                  Get Directions
+                </a>
+              </div>
+            )
+          })()}
+
           {/* Distance */}
           {event.distance != null && (
             <div className="flex items-center gap-2 text-[13px] text-sage-dark">
@@ -285,7 +331,10 @@ export default function EventDetailPage() {
           {event.organizer && (
             <div className="flex items-center gap-2 text-[14px] text-warm-gray-dark">
               <User className="w-4 h-4 shrink-0 text-mauve" aria-hidden="true" />
-              <span>{event.organizer}</span>
+              <span>
+                <span className="text-warm-gray-dark text-[13px]">Organized by </span>
+                <span className="font-medium text-bark">{event.organizer}</span>
+              </span>
             </div>
           )}
         </div>
@@ -295,7 +344,7 @@ export default function EventDetailPage() {
           {/* Save/Interested */}
           <button
             type="button"
-            onClick={() => setSaved(!saved)}
+            onClick={toggleSaved}
             aria-pressed={saved}
             className={cn(
               'flex-1 flex items-center justify-center gap-2',
@@ -357,6 +406,15 @@ export default function EventDetailPage() {
         ) : (
           <div className="mb-6 bg-cream-dark/40 rounded-2xl p-4">
             <p className="text-[14px] text-warm-gray-dark italic">No description available.</p>
+          </div>
+        )}
+
+        {/* Category tags */}
+        {event.tags && event.tags.length > 0 && (
+          <div className="mb-5 flex flex-wrap gap-2">
+            {event.tags.map((tag) => (
+              <CategoryPill key={tag} label={tag} variant="overlay" />
+            ))}
           </div>
         )}
 
