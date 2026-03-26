@@ -1,0 +1,127 @@
+-- Homegrown seed data — 8 Bay Area family events
+-- Run once to populate initial events (dev/staging only)
+-- Column names are camelCase per Prisma schema
+
+INSERT INTO "events" ("id", "source", "title", "description", "startDate", "endDate", "isFree", "cost", "externalUrl", "ageRange", "relevanceScore", "isApproved", "updatedAt")
+VALUES
+  (
+    'seed-sfzoo-free-day',
+    'manual',
+    'SF Zoo Free Day for San Francisco Residents',
+    'San Francisco residents get free admission to the San Francisco Zoo every day. Explore over 250 exotic, endangered and rescued animals. Great for the whole family!',
+    NOW() + INTERVAL '2 days',
+    NOW() + INTERVAL '2 days' + INTERVAL '8 hours',
+    true,
+    'Free for SF residents',
+    'https://www.sfzoo.org/',
+    'young_kids',
+    90,
+    true,
+    NOW()
+  ),
+  (
+    'seed-sfpl-storytime',
+    'manual',
+    'SFPL Family Storytime at Main Library',
+    'Join us for an interactive storytime session for children ages 2–6. Stories, songs, and rhymes to build early literacy skills. Drop-in — no registration required.',
+    NOW() + INTERVAL '3 days',
+    NOW() + INTERVAL '3 days' + INTERVAL '1 hour',
+    true,
+    'Free',
+    'https://sfpl.org/events',
+    'young_kids',
+    85,
+    true,
+    NOW()
+  ),
+  (
+    'seed-calacademy-night',
+    'manual',
+    'NightLife at California Academy of Sciences',
+    'Adults-only evening at the Cal Academy every Thursday. Cocktails among the coral reefs, penguins, and planetarium. 21+ only.',
+    NOW() + INTERVAL '4 days',
+    NOW() + INTERVAL '4 days' + INTERVAL '4 hours',
+    false,
+    '$15–$25',
+    'https://www.calacademy.org/events/nightlife',
+    'all_ages',
+    80,
+    true,
+    NOW()
+  ),
+  (
+    'seed-eastbay-hiking',
+    'manual',
+    'Family Hiking Club — Tilden Regional Park',
+    'Guided family-friendly hike through Tilden Regional Park. 2-mile loop, gentle terrain, wildlife spotting. All ages welcome. Bring water and snacks.',
+    NOW() + INTERVAL '5 days',
+    NOW() + INTERVAL '5 days' + INTERVAL '3 hours',
+    true,
+    'Free (parking $5)',
+    'https://www.ebparks.org/parks/tilden',
+    'family',
+    88,
+    true,
+    NOW()
+  ),
+  (
+    'seed-stem-workshop',
+    'manual',
+    'Kids STEM Workshop — Robotics & Coding',
+    'Hands-on robotics workshop for kids ages 8–14. Build and program simple robots using Scratch and LEGO Mindstorms. Space limited — register in advance.',
+    NOW() + INTERVAL '6 days',
+    NOW() + INTERVAL '6 days' + INTERVAL '2 hours',
+    false,
+    '$20',
+    'https://www.makersf.org/',
+    'older_kids',
+    92,
+    true,
+    NOW()
+  ),
+  (
+    'seed-farmers-market',
+    'manual',
+    'Ferry Plaza Farmers Market — Family Saturday',
+    'SF''s best farmers market at the Ferry Building. Local produce, artisan food, live music, and kids'' activities every Saturday morning. Perfect for families.',
+    NOW() + INTERVAL '7 days',
+    NOW() + INTERVAL '7 days' + INTERVAL '4 hours',
+    true,
+    'Free entry',
+    'https://cuesa.org/markets/ferry-plaza-farmers-market',
+    'all_ages',
+    82,
+    true,
+    NOW()
+  ),
+  (
+    'seed-art-class',
+    'manual',
+    'Kiddo Art Class — Watercolor Explorers',
+    'Drop-in watercolor painting class for children ages 5–12. All materials provided. Taught by local artist. Great for creative kids and first-time painters alike.',
+    NOW() + INTERVAL '8 days',
+    NOW() + INTERVAL '8 days' + INTERVAL '90 minutes',
+    false,
+    '$15 per child',
+    'https://www.creativegrowth.org/',
+    'young_kids',
+    78,
+    true,
+    NOW()
+  ),
+  (
+    'seed-nature-play',
+    'manual',
+    'Nature Play Day — Crissy Field',
+    'Unstructured outdoor play at Crissy Field with naturalist guides. Kids explore tide pools, sand dunes, and shoreline habitats. Sponsored by Golden Gate National Parks Conservancy.',
+    NOW() + INTERVAL '9 days',
+    NOW() + INTERVAL '9 days' + INTERVAL '3 hours',
+    true,
+    'Free',
+    'https://www.parksconservancy.org/',
+    'family',
+    86,
+    true,
+    NOW()
+  )
+ON CONFLICT ("id") DO NOTHING;

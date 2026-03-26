@@ -10,6 +10,7 @@
  *   lat, lng, radius (miles), category, q (search), source
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { fetchSupabaseEvents } from '@/lib/supabase/events'
 import { fetchEventbriteEvents } from '@/lib/eventbrite'
 import { fetchSFPLEvents } from '@/lib/sfpl'
 import { fetchSFPLEventsImproved } from '@/lib/sources/sfpl-improved'
@@ -58,6 +59,11 @@ export async function GET(req: NextRequest) {
     }
 
     const want = (name: string) => sourceFilter === 'all' || sourceFilter === name
+
+    // ─── Supabase — seeded/curated events ─────────────────────────────────────
+    const supabaseResult = want('supabase') || sourceFilter === 'all'
+      ? await fetchSupabaseEvents()
+      : { events: [] as HomegrownEvent[] }
 
     // ─── Legacy sources (original signature, no incremental sync yet) ───────
     const [
@@ -123,6 +129,7 @@ export async function GET(req: NextRequest) {
 
     // Combine all events
     let allEvents: HomegrownEvent[] = [
+      ...supabaseResult.events,
       ...eventbriteResult.events,
       ...sfplEvents,
       ...smclResult.events,
