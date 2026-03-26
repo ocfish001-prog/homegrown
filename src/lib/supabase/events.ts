@@ -50,14 +50,14 @@ function mapAgeRange(raw: string | null): AgeRange | undefined {
   return valid.includes(raw as AgeRange) ? (raw as AgeRange) : undefined
 }
 
-export async function fetchSupabaseEvents(): Promise<{
+export async function fetchSupabaseEvents(sourceFilter?: string | null): Promise<{
   events: HomegrownEvent[]
   error?: string
 }> {
   try {
     const supabase = createServerClient()
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('events')
       .select(`
         id, source, title, description,
@@ -69,7 +69,14 @@ export async function fetchSupabaseEvents(): Promise<{
       .eq('isApproved', true)
       .gte('startDate', new Date().toISOString())
       .order('startDate', { ascending: true })
-      .limit(100)
+      .limit(200)
+
+    // Apply source filter if provided
+    if (sourceFilter) {
+      query = query.eq('source', sourceFilter)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('[Supabase] fetch events error:', error.message)
@@ -100,7 +107,7 @@ export async function fetchSupabaseEvents(): Promise<{
         imageUrl: row.imageUrl ?? undefined,
         price: row.isFree ? 'Free' : (row.cost ?? undefined),
         url: row.externalUrl,
-        source: 'manual',
+        source: (row.source as HomegrownEvent['source']) ?? 'manual',
         ageRange: mapAgeRange(row.ageRange),
       }
     })

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import RegionSwitcher from '@/components/ui/RegionSwitcher'
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -39,25 +40,13 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          {/* Location chip */}
-          <div
-            className="flex items-center gap-1 bg-sage/10 text-sage-dark text-sm px-3 py-1 rounded-full"
-            aria-label="Current location: Big Island, Hawaii"
-          >
-            <span aria-hidden="true">📍</span>
-            <span>Big Island, Hawaii</span>
-          </div>
+          {/* Region switcher */}
+          <RegionSwitcher compact />
         </nav>
 
-        {/* Mobile: Location chip + Hamburger */}
+        {/* Mobile: Region switcher + Hamburger */}
         <div className="flex md:hidden items-center gap-3">
-          <div
-            className="flex items-center gap-1 bg-sage/10 text-sage-dark text-sm px-2 py-1 rounded-full"
-            aria-label="Current location: Big Island, Hawaii"
-          >
-            <span aria-hidden="true">📍</span>
-            <span className="text-xs">Big Island, Hawaii</span>
-          </div>
+          <RegionSwitcher compact />
           <button
             type="button"
             onClick={() => setMenuOpen((prev) => !prev)}

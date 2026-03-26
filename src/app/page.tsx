@@ -5,20 +5,20 @@ import { useRouter } from 'next/navigation'
 import HeroSearch from '@/components/ui/HeroSearch'
 import FilterBar from '@/components/ui/FilterBar'
 import EventGrid from '@/components/ui/EventGrid'
-import LocationPicker from '@/components/ui/LocationPicker'
+import RegionSwitcher from '@/components/ui/RegionSwitcher'
 import SetupBanner from '@/components/ui/SetupBanner'
 import type { EventCardData } from '@/components/ui/EventCard'
-import type { LocationState, AgeRange } from '@/lib/types'
-import { DEFAULT_LOCATION } from '@/lib/types'
+import type { AgeRange } from '@/lib/types'
 import type { EventsApiResponse } from '@/lib/types'
+import { useRegion } from '@/context/RegionContext'
 
 export default function HomePage() {
   const router = useRouter()
+  const { region, regionKey } = useRegion()
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  const [location, setLocation] = useState<LocationState>(DEFAULT_LOCATION)
   const [events, setEvents] = useState<EventCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [setupMessages, setSetupMessages] = useState<string[]>([])
@@ -40,9 +40,10 @@ export default function HomePage() {
     setLoading(true)
     try {
       const params = new URLSearchParams({
-        lat: String(location.lat),
-        lng: String(location.lng),
-        radius: String(location.radius),
+        lat: String(region.lat),
+        lng: String(region.lng),
+        radius: String(region.radius),
+        region: regionKey,
         ...(activeCategory !== 'All' && { category: activeCategory }),
         ...(activeAgeRange !== 'All' && { ageRange: activeAgeRange }),
         ...(debouncedQuery.trim() && { q: debouncedQuery.trim() }),
@@ -66,7 +67,7 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [location, activeCategory, activeAgeRange, debouncedQuery])
+  }, [region, regionKey, activeCategory, activeAgeRange, debouncedQuery])
 
   useEffect(() => {
     fetchEvents()
@@ -80,14 +81,9 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
       {/* Hero + Search */}
       <HeroSearch
-        location={location.label}
+        location={region.label}
         onSearchChange={setSearchQuery}
-        locationSlot={
-          <LocationPicker
-            location={location}
-            onLocationChange={setLocation}
-          />
-        }
+        locationSlot={<RegionSwitcher />}
       />
 
       {/* Category + Age Range filter bar — sticky */}

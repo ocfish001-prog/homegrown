@@ -53,6 +53,8 @@ export async function GET(req: NextRequest) {
     const q = searchParams.get('q') ?? ''
     const sourceFilter = searchParams.get('source') ?? 'all'
     const ageRangeFilter = searchParams.get('ageRange') ?? 'All'
+    // Region param: 'hawaii' | 'sfbay' | null (null = no filter)
+    const regionParam = searchParams.get('region') ?? null
 
     if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
       return NextResponse.json({ error: 'Invalid location parameters' }, { status: 400 })
@@ -61,8 +63,14 @@ export async function GET(req: NextRequest) {
     const want = (name: string) => sourceFilter === 'all' || sourceFilter === name
 
     // ─── Supabase — seeded/curated events ─────────────────────────────────────
+    // Map region param to source filter for Supabase
+    const supabaseSourceFilter: string | null =
+      regionParam === 'hawaii' ? 'hawaii-manual' :
+      regionParam === 'sfbay' ? 'manual' :
+      null // null = no filter (return all)
+
     const supabaseResult = want('supabase') || sourceFilter === 'all'
-      ? await fetchSupabaseEvents()
+      ? await fetchSupabaseEvents(supabaseSourceFilter)
       : { events: [] as HomegrownEvent[] }
 
     // ─── Legacy sources (original signature, no incremental sync yet) ───────
