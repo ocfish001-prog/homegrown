@@ -3,9 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 model Event {
@@ -22,6 +20,7 @@ model Event {
   externalUrl    String
   relevanceScore Int             @default(0)
   isApproved     Boolean         @default(true)
+  ageRange       String?         // "young_kids" | "older_kids" | "all_ages" | "family"
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   venue          Venue?          @relation(fields: [venueId], references: [id])
@@ -31,6 +30,7 @@ model Event {
   @@unique([externalId, source])
   @@index([startDate])
   @@index([source])
+  @@index([ageRange])
   @@map("events")
 }
 

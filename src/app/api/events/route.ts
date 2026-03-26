@@ -25,6 +25,7 @@ import { fetchBayAreaKidFunEvents } from '@/lib/sources/bayareakidfun'
 import { fetchCAHomeschoolEvents } from '@/lib/sources/cahomeschool'
 import { runSourceSync, getLastSync } from '@/lib/sync-engine'
 import { haversineDistance } from '@/lib/distance'
+import { classifyEventAgeRanges } from '@/lib/age-range'
 import type { HomegrownEvent, EventsApiResponse } from '@/lib/types'
 import { DEFAULT_LOCATION } from '@/lib/types'
 
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
     const category = searchParams.get('category') ?? 'All'
     const q = searchParams.get('q') ?? ''
     const sourceFilter = searchParams.get('source') ?? 'all'
+    const ageRangeFilter = searchParams.get('ageRange') ?? 'All'
 
     if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
       return NextResponse.json({ error: 'Invalid location parameters' }, { status: 400 })
@@ -135,6 +137,9 @@ export async function GET(req: NextRequest) {
       ...caHomeschoolSyncResult.events,
     ]
 
+    // Classify age ranges for all events
+    allEvents = classifyEventAgeRanges(allEvents)
+
     // Attach distance for events with coordinates
     allEvents = allEvents.map((ev) => {
       if (ev.lat != null && ev.lng != null) {
@@ -151,6 +156,14 @@ export async function GET(req: NextRequest) {
     // Filter by category
     if (category !== 'All') {
       allEvents = allEvents.filter((ev) => ev.category === category)
+    }
+
+    // Filter by age range
+    if (ageRangeFilter !== 'All') {
+      allEvents = allEvents.filter((ev) =>
+        // Keep events that match the filter, or have no age range classified (don't exclude unclassified)
+        ev.ageRange === ageRangeFilter || ev.ageRange == null
+      )
     }
 
     // Filter by search query
@@ -193,7 +206,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        // No CDN caching — each request fetches fresh from sources.
+        // Next.js revalidate is set per-fetch() call in each source.
+        'Cache-Control': 'no-store',
       },
     })
   } catch (err) {

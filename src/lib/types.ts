@@ -3,6 +3,24 @@
  * All real data — no fake/placeholder events
  */
 
+/**
+ * Age range classification for events.
+ * Used to filter and tag events by suitability.
+ *
+ * - young_kids: ages 0–7 (storytime, sensory play, petting zoos)
+ * - older_kids: ages 8–14 (STEM, hiking, teen programs)
+ * - all_ages: explicitly suitable for all ages
+ * - family: family-oriented, may require adult supervision or older kids
+ */
+export type AgeRange = 'young_kids' | 'older_kids' | 'all_ages' | 'family'
+
+export const AGE_RANGE_LABELS: Record<AgeRange, string> = {
+  young_kids: 'Young Kids (0–7)',
+  older_kids: 'Older Kids (8–14)',
+  all_ages: 'All Ages',
+  family: 'Family',
+}
+
 export interface HomegrownEvent {
   id: string
   title: string
@@ -23,6 +41,7 @@ export interface HomegrownEvent {
   source: 'eventbrite' | 'sfpl' | 'smcl' | 'sfzoo' | 'calacademy' | '4h' | 'sffun' | 'meetup' | 'manual' | 'funcheap' | 'nps' | 'ebparks' | 'bayareakidfun' | 'cahomeschool'
   isSaved?: boolean
   tags?: string[]
+  ageRange?: AgeRange
 }
 
 export interface EventsApiResponse {

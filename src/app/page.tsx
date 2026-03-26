@@ -8,13 +8,14 @@ import EventGrid from '@/components/ui/EventGrid'
 import LocationPicker from '@/components/ui/LocationPicker'
 import SetupBanner from '@/components/ui/SetupBanner'
 import type { EventCardData } from '@/components/ui/EventCard'
-import type { LocationState } from '@/lib/types'
+import type { LocationState, AgeRange } from '@/lib/types'
 import { DEFAULT_LOCATION } from '@/lib/types'
 import type { EventsApiResponse } from '@/lib/types'
 
 export default function HomePage() {
   const router = useRouter()
   const [activeCategory, setActiveCategory] = useState('All')
+  const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [location, setLocation] = useState<LocationState>(DEFAULT_LOCATION)
@@ -43,6 +44,7 @@ export default function HomePage() {
         lng: String(location.lng),
         radius: String(location.radius),
         ...(activeCategory !== 'All' && { category: activeCategory }),
+        ...(activeAgeRange !== 'All' && { ageRange: activeAgeRange }),
         ...(debouncedQuery.trim() && { q: debouncedQuery.trim() }),
       })
 
@@ -64,7 +66,7 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
-  }, [location, activeCategory, debouncedQuery])
+  }, [location, activeCategory, activeAgeRange, debouncedQuery])
 
   useEffect(() => {
     fetchEvents()
@@ -88,8 +90,11 @@ export default function HomePage() {
         }
       />
 
-      {/* Category filter bar — sticky */}
-      <FilterBar onCategoryChange={setActiveCategory} />
+      {/* Category + Age Range filter bar — sticky */}
+      <FilterBar
+        onCategoryChange={setActiveCategory}
+        onAgeRangeChange={setActiveAgeRange}
+      />
 
       {/* Setup banners — shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
@@ -125,6 +130,7 @@ export default function HomePage() {
           searchQuery={debouncedQuery}
           onResetFilters={() => {
             setActiveCategory('All')
+            setActiveAgeRange('All')
             setSearchQuery('')
             setDebouncedQuery('')
           }}
