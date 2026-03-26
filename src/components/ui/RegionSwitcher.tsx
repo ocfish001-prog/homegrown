@@ -1,6 +1,7 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { MapPin, ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { REGION_LIST, type RegionKey } from '@/lib/region'
@@ -8,24 +9,91 @@ import { useRegion } from '@/context/RegionContext'
 
 interface RegionSwitcherProps {
   className?: string
-  /** If true, shows a compact button (for headers). Default: false (full-size). */
   compact?: boolean
 }
 
 export default function RegionSwitcher({ className, compact = false }: RegionSwitcherProps) {
   const { regionKey, region, setRegion } = useRegion()
   const [isOpen, setIsOpen] = useState(false)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  function handleOpen() {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPos({ top: rect.bottom + window.scrollY + 8, left: rect.left + window.scrollX })
+    }
+    setIsOpen((v) => !v)
+  }
 
   function handleSelect(key: RegionKey) {
     setRegion(key)
     setIsOpen(false)
   }
 
+  const dropdown = mounted && isOpen ? createPortal(
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[9998]"
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      />
+      {/* Dropdown */}
+      <div
+        role="listbox"
+        aria-label="Select region"
+        style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left }}
+        className="z-[9999] min-w-[200px] bg-white rounded-xl shadow-lg border border-warm-gray/20 py-1.5"
+      >
+        <p className="text-[10px] font-semibold text-warm-gray-dark uppercase tracking-wide px-3 py-1.5">
+          Region
+        </p>
+        {REGION_LIST.map((r) => (
+          <button
+            key={r.key}
+            role="option"
+            aria-selected={regionKey === r.key}
+            type="button"
+            onClick={() => handleSelect(r.key)}
+            className={cn(
+              'w-full flex items-center gap-2.5 px-3 py-2.5',
+              'text-[13px] font-medium text-left',
+              'transition-colors duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage',
+              'min-h-[44px]',
+              regionKey === r.key
+                ? 'bg-sage/10 text-bark'
+                : 'text-bark/80 hover:bg-warm-gray/10'
+            )}
+          >
+            <MapPin
+              className={cn('w-3.5 h-3.5 shrink-0', regionKey === r.key ? 'text-sage' : 'text-warm-gray-dark')}
+              aria-hidden="true"
+            />
+            <div className="flex-1">
+              <div>{r.label}</div>
+              <div className="text-[11px] text-warm-gray-dark font-normal">{r.city}</div>
+            </div>
+            {regionKey === r.key && (
+              <Check className="w-3.5 h-3.5 text-sage shrink-0" aria-hidden="true" />
+            )}
+          </button>
+        ))}
+      </div>
+    </>,
+    document.body
+  ) : null
+
   return (
     <div className={cn('relative', className)}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={handleOpen}
         className={cn(
           'inline-flex items-center gap-1.5',
           'rounded-full',
@@ -60,69 +128,7 @@ export default function RegionSwitcher({ className, compact = false }: RegionSwi
           aria-hidden="true"
         />
       </button>
-
-      {isOpen && (
-        <>
-          {/* Dropdown â€” z-[9999] clears FilterBar stacking context (z-40) */}
-          <div
-            role="listbox"
-            aria-label="Select region"
-            className={cn(
-              'absolute top-full left-0 mt-2 z-[9999]',
-              'min-w-[200px] bg-white rounded-xl shadow-lg border border-warm-gray/20',
-              'py-1.5',
-              'animate-fade-up'
-            )}
-          >
-            <p className="text-[10px] font-semibold text-warm-gray-dark uppercase tracking-wide px-3 py-1.5">
-              Region
-            </p>
-            {REGION_LIST.map((r) => (
-              <button
-                key={r.key}
-                role="option"
-                aria-selected={regionKey === r.key}
-                type="button"
-                onClick={() => handleSelect(r.key)}
-                className={cn(
-                  'w-full flex items-center gap-2.5 px-3 py-2.5',
-                  'text-[13px] font-medium text-left',
-                  'transition-colors duration-150',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage',
-                  'min-h-[44px]',
-                  regionKey === r.key
-                    ? 'bg-sage/10 text-bark'
-                    : 'text-bark/80 hover:bg-warm-gray/10'
-                )}
-              >
-                <MapPin
-                  className={cn(
-                    'w-3.5 h-3.5 shrink-0',
-                    regionKey === r.key ? 'text-sage' : 'text-warm-gray-dark'
-                  )}
-                  aria-hidden="true"
-                />
-                <div className="flex-1">
-                  <div>{r.label}</div>
-                  <div className="text-[11px] text-warm-gray-dark font-normal">{r.city}</div>
-                </div>
-                {regionKey === r.key && (
-                  <Check className="w-3.5 h-3.5 text-sage shrink-0" aria-hidden="true" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Backdrop â€” z-[9998] sits above FilterBar (z-40) but below dropdown (z-[9999]) */}
-          <div
-            className="fixed inset-0 z-[9998]"
-            onClick={() => setIsOpen(false)}
-            aria-hidden="true"
-          />
-        </>
-      )}
+      {dropdown}
     </div>
   )
 }
-
-
