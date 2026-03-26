@@ -3,63 +3,61 @@
 @tailwind utilities;
 
 /* =============================================
-   Homegrown Design System — Earthy Palette
+   Homegrown Design System — Phase 1.5
+   Modern app-feel, earthy palette
    ============================================= */
 :root {
   /* Brand colors */
-  --color-sage: #7D9B76;
-  --color-sage-light: #A8C4A2;
-  --color-mauve: #9B7D8A;
-  --color-mauve-light: #BF9CB1;
-  --color-stone: #8C8070;
+  --color-sage: #919A84;
+  --color-sage-light: #A8B09C;
+  --color-sage-dark: #7A8270;
+  --color-mauve: #BF9CB1;
+  --color-mauve-light: #D0B5C5;
+  --color-warm-gray: #CFCBCA;
   --color-cream: #F5F0E8;
   --color-bark: #4A3728;
   --color-sky: #7BA3C0;
-  --color-moss: #5C7A56;
-  --color-warm-gray: #CFCBCA;
 
-  /* shadcn/ui CSS variable mappings (Tailwind v3 compatible) */
-  --background: 248 243 232; /* cream */
-  --foreground: 74 55 40;    /* bark */
+  /* shadcn/ui CSS variable mappings */
+  --background: 245 240 232;   /* cream */
+  --foreground: 74 55 40;      /* bark */
   --card: 255 255 255;
   --card-foreground: 74 55 40;
   --popover: 255 255 255;
   --popover-foreground: 74 55 40;
-  --primary: 125 155 118;    /* sage */
+  --primary: 145 154 132;      /* sage */
   --primary-foreground: 255 255 255;
-  --secondary: 207 203 202;  /* warm-gray */
+  --secondary: 207 203 202;    /* warm-gray */
   --secondary-foreground: 74 55 40;
-  --muted: 240 237 233;
+  --muted: 237 232 223;
   --muted-foreground: 140 128 112;
-  --accent: 191 156 177;     /* mauve-light */
+  --accent: 191 156 177;       /* mauve */
   --accent-foreground: 74 55 40;
   --destructive: 220 38 38;
   --destructive-foreground: 255 255 255;
-  --border: 207 203 202;     /* warm-gray */
+  --border: 207 203 202;
   --input: 207 203 202;
-  --ring: 125 155 118;       /* sage */
-  --radius: 0.625rem;
+  --ring: 145 154 132;         /* sage */
+  --radius: 0.75rem;
 }
 
 @layer base {
   * {
-    @apply border-stone/20;
+    @apply border-warm-gray/30;
+  }
+
+  /* Prevent horizontal scroll/zoom on mobile */
+  html {
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-cream text-bark font-sans antialiased;
-  }
-
-  html {
-    @apply font-sans;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold text-bark;
-  }
-
-  a {
-    @apply text-sage hover:text-moss transition-colors;
+    @apply text-bark;
   }
 
   /* Focus styles — WCAG 2.1 AA */
@@ -69,16 +67,48 @@
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  /* Shimmer skeleton animation */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #F0EDEC 25%,
+      #E8E4E2 50%,
+      #F0EDEC 75%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer rounded;
   }
 
-  /* Font utilities */
-  .font-heading {
-    font-family: var(--font-instrument-serif), Georgia, serif;
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .font-sans {
-    font-family: var(--font-inter), system-ui, sans-serif;
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Hide scrollbar but allow scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Safe area padding for iOS */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mb-nav {
+    margin-bottom: 83px;
   }
 }

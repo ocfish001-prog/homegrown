@@ -113,3 +113,15 @@ model SavedEvent {
   @@unique([eventId, sessionId])
   @@map("saved_events")
 }
+
+/// Tracks the last successful sync per event source.
+/// Used by the incremental sync engine to only fetch new/changed events.
+model SourceSync {
+  source        String   @id          // e.g. "funcheap", "nps", "ebparks"
+  lastSyncedAt  DateTime              // timestamp of last successful full sync
+  lastSyncCount Int      @default(0)  // # events processed on last run
+  lastEtag      String?               // RSS ETag / NPS modified date / etc.
+  updatedAt     DateTime @updatedAt
+
+  @@map("source_syncs")
+}

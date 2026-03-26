@@ -9,24 +9,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Homegrown earthy palette (direct hex values)
         sage: {
-          DEFAULT: '#7D9B76',
-          light: '#A8C4A2',
-          dark: '#5C7A56',
+          DEFAULT: '#919A84',
+          light: '#A8B09C',
+          dark: '#7A8270',
         },
         mauve: {
-          DEFAULT: '#9B7D8A',
-          light: '#BF9CB1',
+          DEFAULT: '#BF9CB1',
+          light: '#D0B5C5',
+          dark: '#A8849C',
         },
-        stone: {
-          DEFAULT: '#8C8070',
+        'warm-gray': {
+          DEFAULT: '#CFCBCA',
+          light: '#E0DCDB',
+          dark: '#B5B0AF',
         },
         cream: {
           DEFAULT: '#F5F0E8',
+          dark: '#EDE8DF',
         },
         bark: {
           DEFAULT: '#4A3728',
+          light: '#5C4535',
+          dark: '#362819',
         },
         sky: {
           DEFAULT: '#7BA3C0',
@@ -34,10 +39,7 @@ const config: Config = {
         moss: {
           DEFAULT: '#5C7A56',
         },
-        'warm-gray': {
-          DEFAULT: '#CFCBCA',
-        },
-        // shadcn/ui compatible semantic tokens (for Card, Button, etc.)
+        // shadcn/ui CSS variable mappings
         background: 'rgb(var(--background) / <alpha-value>)',
         foreground: 'rgb(var(--foreground) / <alpha-value>)',
         card: {
@@ -72,15 +74,75 @@ const config: Config = {
         input: 'rgb(var(--input) / <alpha-value>)',
         ring: 'rgb(var(--ring) / <alpha-value>)',
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         serif: ['var(--font-instrument-serif)', 'Georgia', 'serif'],
         heading: ['var(--font-instrument-serif)', 'Georgia', 'serif'],
+      },
+      fontSize: {
+        display: ['2.25rem', { lineHeight: '2.75rem', letterSpacing: '-0.02em' }],
+        h1: ['1.875rem', { lineHeight: '2.375rem', letterSpacing: '-0.02em' }],
+        h2: ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.01em' }],
+        h3: ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.01em' }],
+        h4: ['1.0625rem', { lineHeight: '1.5rem', letterSpacing: '0' }],
+        'body-lg': ['1rem', { lineHeight: '1.625rem', letterSpacing: '0' }],
+        body: ['0.9375rem', { lineHeight: '1.5rem', letterSpacing: '0' }],
+        'body-sm': ['0.875rem', { lineHeight: '1.375rem', letterSpacing: '0' }],
+        caption: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0.01em' }],
+        label: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.06em' }],
+      },
+      spacing: {
+        xs: '4px',
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        '2xl': '32px',
+        '3xl': '48px',
+        '4xl': '64px',
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        pill: '9999px',
+        card: '12px',
+      },
+      boxShadow: {
+        card: '0 1px 3px 0 rgba(74,55,40,0.08), 0 1px 2px -1px rgba(74,55,40,0.04)',
+        'card-hover':
+          '0 4px 12px 0 rgba(74,55,40,0.12), 0 2px 4px -1px rgba(74,55,40,0.06)',
+        overlay: '0 -1px 12px 0 rgba(74,55,40,0.10)',
+        search: '0 2px 8px 0 rgba(145,154,132,0.20)',
+      },
+      keyframes: {
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'heart-pop': {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.3)' },
+          '100%': { transform: 'scale(1)' },
+        },
+      },
+      animation: {
+        shimmer: 'shimmer 1.5s ease-in-out infinite',
+        'fade-up': 'fade-up 0.25s ease-out forwards',
+        'scale-in': 'scale-in 0.20s ease-out forwards',
+        'heart-pop': 'heart-pop 0.3s ease-out',
+      },
+      transitionTimingFunction: {
+        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },
