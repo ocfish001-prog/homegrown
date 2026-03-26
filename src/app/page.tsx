@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -102,14 +102,14 @@ export default function HomePage() {
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Date + Age Range filter bar — sticky */}
-      <FilterBar
+      {/* Category + Date + Age Range filter bar â€” sticky */}
+      <FilterBar key={regionKey}
         onCategoryChange={setActiveCategory}
         onAgeRangeChange={setActiveAgeRange}
         onDateFilterChange={setActiveDateFilter}
       />
 
-      {/* Setup banners — shown when APIs need configuration */}
+      {/* Setup banners â€” shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
         <div className="px-lg pt-3 space-y-2">
           {setupMessages.map((msg, i) => (
@@ -155,3 +155,4 @@ export default function HomePage() {
     </div>
   )
 }
+
