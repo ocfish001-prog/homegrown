@@ -334,7 +334,7 @@ export async function GET(req: NextRequest) {
       headers: {
         // No CDN caching â€” each request fetches fresh from sources.
         // Next.js revalidate is set per-fetch() call in each source.
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     })
   } catch (err) {
@@ -355,5 +355,6 @@ function deduplicateByTitleDate(events: HomegrownEvent[]): HomegrownEvent[] {
     return true
   })
 }
+
 
 

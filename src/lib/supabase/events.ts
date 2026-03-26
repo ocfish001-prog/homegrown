@@ -80,7 +80,6 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null, timezone
 
     // Apply source filter if provided (e.g. 'hawaii-manual' for Hawaii region).
     // For SF Bay (null), exclude Hawaii-only events so they don't waste the limit budget.
-    console.log('[Supabase] sourceFilter:', sourceFilter)
     if (sourceFilter) {
       query = query.eq('source', sourceFilter)
     } else {
@@ -129,4 +128,5 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null, timezone
     return { events: [], error: String(err) }
   }
 }
+
 
