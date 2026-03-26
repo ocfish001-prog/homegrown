@@ -13,6 +13,7 @@ export const REGIONS = {
     lng: -155.5828,
     radius: 25,
     sourceFilter: 'hawaii-manual',
+    timezone: 'Pacific/Honolulu',
   },
   sfbay: {
     key: 'sfbay' as const,
@@ -23,13 +24,14 @@ export const REGIONS = {
     lng: -122.4194,
     radius: 25,
     sourceFilter: 'manual',
+    timezone: 'America/Los_Angeles',
   },
 } as const
 
 export type RegionKey = keyof typeof REGIONS
 export type Region = (typeof REGIONS)[RegionKey]
 
-export const DEFAULT_REGION: RegionKey = 'hawaii'
+export const DEFAULT_REGION: RegionKey = 'sfbay'
 
 export const REGION_LIST: Region[] = Object.values(REGIONS)
 

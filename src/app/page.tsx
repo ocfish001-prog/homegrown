@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import HeroSearch from '@/components/ui/HeroSearch'
 import FilterBar from '@/components/ui/FilterBar'
@@ -16,29 +16,37 @@ import { useRegion } from '@/context/RegionContext'
 export default function HomePage() {
   const router = useRouter()
   const { region, regionKey } = useRegion()
-  const prevRegionKey = useRef<string>(regionKey)
+
+  // Filters — controlled state
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
   const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
+
+  // Data state
   const [events, setEvents] = useState<EventCardData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [setupMessages, setSetupMessages] = useState<string[]>([])
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Reset filters when region changes
-  useEffect(() => {
-    if (prevRegionKey.current !== regionKey) {
-      prevRegionKey.current = regionKey
-      setActiveCategory('All')
-      setActiveAgeRange('All')
-      setActiveDateFilter('all')
-      setSearchQuery('')
-      setDebouncedQuery('')
-    }
-  }, [regionKey])
+  // Refs for debounce and abort
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Track previous region to detect changes and reset filters
+  const prevRegionKeyRef = useRef<string>(regionKey)
+
+  // Reset filters synchronously when region changes
+  // This runs before the fetch effect sees the new regionKey
+  if (prevRegionKeyRef.current !== regionKey) {
+    prevRegionKeyRef.current = regionKey
+    setActiveCategory('All')
+    setActiveAgeRange('All')
+    setActiveDateFilter('all')
+    setSearchQuery('')
+    setDebouncedQuery('')
+  }
 
   // Debounce search input
   useEffect(() => {
@@ -51,50 +59,74 @@ export default function HomePage() {
     }
   }, [searchQuery])
 
-  // Fetch events from API
-  const fetchEvents = useCallback(async () => {
-    setLoading(true)
-    setError(false)
-    try {
-      const params = new URLSearchParams({
-        lat: String(region.lat),
-        lng: String(region.lng),
-        radius: String(region.radius),
-        region: regionKey,
-        ...(activeCategory !== 'All' && { category: activeCategory }),
-        ...(activeAgeRange !== 'All' && { ageRange: activeAgeRange }),
-        ...(activeDateFilter !== 'all' && { dateFilter: activeDateFilter }),
-        ...(debouncedQuery.trim() && { q: debouncedQuery.trim() }),
-      })
+  // Fetch events — fires whenever any filter or region changes
+  useEffect(() => {
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      abortRef.current.abort()
+    }
+    const controller = new AbortController()
+    abortRef.current = controller
 
-      const res = await fetch(`/api/events?${params}`)
-      if (!res.ok) throw new Error('Failed to fetch events')
-
-      const data: EventsApiResponse = await res.json()
-      setEvents(data.events as EventCardData[])
+    const fetchEvents = async () => {
+      setLoading(true)
       setError(false)
+      try {
+        const params = new URLSearchParams({
+          lat: String(region.lat),
+          lng: String(region.lng),
+          radius: String(region.radius),
+          region: regionKey,
+          ...(activeCategory !== 'All' && { category: activeCategory }),
+          ...(activeAgeRange !== 'All' && { ageRange: activeAgeRange }),
+          ...(activeDateFilter !== 'all' && { dateFilter: activeDateFilter }),
+          ...(debouncedQuery.trim() && { q: debouncedQuery.trim() }),
+        })
 
-      // Collect setup messages
-      if (data.requiresSetup && data.setupMessage) {
-        setSetupMessages(data.setupMessage.split(' | ').filter(Boolean))
-      } else {
-        setSetupMessages([])
+        const res = await fetch(`/api/events?${params}`, {
+          signal: controller.signal,
+        })
+        if (!res.ok) throw new Error('Failed to fetch events')
+
+        const data: EventsApiResponse = await res.json()
+        setEvents(data.events as EventCardData[])
+        setError(false)
+
+        // Collect setup messages
+        if (data.requiresSetup && data.setupMessage) {
+          setSetupMessages(data.setupMessage.split(' | ').filter(Boolean))
+        } else {
+          setSetupMessages([])
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return // ignore cancelled fetches
+        console.error('[HomePage] Failed to fetch events:', err)
+        setEvents([])
+        setError(true)
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
-    } catch (err) {
-      console.error('[HomePage] Failed to fetch events:', err)
-      setEvents([])
-      setError(true)
-    } finally {
-      setLoading(false)
+    }
+
+    fetchEvents()
+
+    return () => {
+      controller.abort()
     }
   }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
-  useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
-
   function handleEventClick(id: string) {
     router.push(`/events/${id}`)
+  }
+
+  function resetFilters() {
+    setActiveCategory('All')
+    setActiveAgeRange('All')
+    setActiveDateFilter('all')
+    setSearchQuery('')
+    setDebouncedQuery('')
   }
 
   return (
@@ -117,8 +149,9 @@ export default function HomePage() {
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Date + Age Range filter bar â€" sticky */}
-      <FilterBar key={regionKey}
+      {/* Category + Date + Age Range filter bar — sticky */}
+      <FilterBar
+        key={regionKey}
         onCategoryChange={setActiveCategory}
         onAgeRangeChange={setActiveAgeRange}
         onDateFilterChange={setActiveDateFilter}
@@ -133,7 +166,13 @@ export default function HomePage() {
             <p className="text-[13px] text-red-600">Check your connection and try again.</p>
           </div>
           <button
-            onClick={fetchEvents}
+            onClick={() => {
+              setError(false)
+              setLoading(true)
+              // Re-trigger by toggling a dummy state would be complex;
+              // simplest is to reload since error state is rare
+              window.location.reload()
+            }}
             className="ml-auto text-[13px] font-medium text-red-700 underline"
           >
             Retry
@@ -141,7 +180,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Setup banners â€" shown when APIs need configuration */}
+      {/* Setup banners — shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
         <div className="px-lg pt-3 space-y-2">
           {setupMessages.map((msg, i) => (
@@ -174,17 +213,10 @@ export default function HomePage() {
           category={activeCategory}
           searchQuery={debouncedQuery}
           regionKey={regionKey}
-          onResetFilters={() => {
-            setActiveCategory('All')
-            setActiveAgeRange('All')
-            setActiveDateFilter('all')
-            setSearchQuery('')
-            setDebouncedQuery('')
-          }}
+          onResetFilters={resetFilters}
           onEventClick={handleEventClick}
         />
       </section>
     </div>
   )
 }
-

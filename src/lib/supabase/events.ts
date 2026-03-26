@@ -33,17 +33,20 @@ interface SupabaseEventRow {
   venues: SupabaseVenue[] | SupabaseVenue | null
 }
 
-function formatDate(isoString: string): string {
+function formatDate(isoString: string, timezone?: string): string {
   const d = new Date(isoString)
+  const tz = timezone || 'America/Los_Angeles'
   // Format: "Sat, Apr 5 · 10:00 AM"
   const datePart = d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
+    timeZone: tz,
   })
   const timePart = d.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
+    timeZone: tz,
   })
   return `${datePart} · ${timePart}`
 }
@@ -54,7 +57,7 @@ function mapAgeRange(raw: string | null): AgeRange | undefined {
   return valid.includes(raw as AgeRange) ? (raw as AgeRange) : undefined
 }
 
-export async function fetchSupabaseEvents(sourceFilter?: string | null): Promise<{
+export async function fetchSupabaseEvents(sourceFilter?: string | null, timezone?: string): Promise<{
   events: HomegrownEvent[]
   error?: string
 }> {
@@ -103,7 +106,7 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null): Promise
         title: row.title,
         description: row.description ?? undefined,
         category: 'Events', // default category; categories table join TBD
-        date: formatDate(row.startDate),
+        date: formatDate(row.startDate, timezone),
         dateISO: row.startDate,
         endDateISO: row.endDate ?? undefined,
         location: venue?.name ?? venue?.city ?? 'Big Island, HI',

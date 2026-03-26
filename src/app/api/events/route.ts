@@ -61,6 +61,8 @@ export async function GET(req: NextRequest) {
     const dateFilter = searchParams.get('dateFilter') ?? 'all'
     // Region param: 'hawaii' | 'sfbay' | null (null = no filter)
     const regionParam = searchParams.get('region') ?? null
+    // Timezone for formatting dates in the correct region's local time
+    const regionTimezone = regionParam === 'hawaii' ? 'Pacific/Honolulu' : 'America/Los_Angeles'
 
     if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
       return NextResponse.json({ error: 'Invalid location parameters' }, { status: 400 })
@@ -81,7 +83,7 @@ export async function GET(req: NextRequest) {
       regionParam === 'hawaii' ? 'hawaii-manual' : null
 
     const supabaseResult = want('supabase') || sourceFilter === 'all'
-      ? await fetchSupabaseEvents(supabaseSourceFilter)
+      ? await fetchSupabaseEvents(supabaseSourceFilter, regionTimezone)
       : { events: [] as HomegrownEvent[] }
 
     // ─── Legacy sources (original signature, no incremental sync yet) ───────
@@ -283,8 +285,8 @@ export async function GET(req: NextRequest) {
     // Filter by age range
     if (ageRangeFilter !== 'All') {
       allEvents = allEvents.filter((ev) =>
-        // Keep events that match the filter, or have no age range classified (don't exclude unclassified)
-        ev.ageRange === ageRangeFilter || ev.ageRange == null
+        // Only keep events that explicitly match the selected age range
+        ev.ageRange === ageRangeFilter
       )
     }
 
