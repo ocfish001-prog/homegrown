@@ -38,7 +38,7 @@ export interface HomegrownEvent {
   imageUrl?: string
   price?: string // e.g. "Free", "$15", "$10–$25"
   url?: string // Link to original event
-  source: 'eventbrite' | 'sfpl' | 'smcl' | 'sfzoo' | 'calacademy' | '4h' | 'sffun' | 'meetup' | 'manual' | 'hawaii-manual' | 'funcheap' | 'nps' | 'ebparks' | 'bayareakidfun' | 'cahomeschool'
+  source: 'eventbrite' | 'sfpl' | 'smcl' | 'sfzoo' | 'calacademy' | '4h' | 'sffun' | 'meetup' | 'manual' | 'hawaii-manual' | 'funcheap' | 'nps' | 'ebparks' | 'bayareakidfun' | 'cahomeschool' | 'contra-costa-ical' | 'eventbrite-sfbay' | 'chabot-ical' | 'lindsay-ical' | 'badm-ical' | 'chn-ical' | 'sjpl-bibliocommons' | 'oakland-bibliocommons' | 'smcl-bibliocommons'
   isSaved?: boolean
   tags?: string[]
   ageRange?: AgeRange

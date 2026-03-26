@@ -24,6 +24,10 @@ import { fetchNpsEvents } from '@/lib/sources/nps'
 import { fetchEastBayParksEvents } from '@/lib/sources/ebparks'
 import { fetchBayAreaKidFunEvents } from '@/lib/sources/bayareakidfun'
 import { fetchCAHomeschoolEvents } from '@/lib/sources/cahomeschool'
+import { fetchContraCostaIcalEvents } from '@/lib/sources/contra-costa-ical'
+import { fetchEventbriteSFBayEvents } from '@/lib/sources/eventbrite-sfbay'
+import { fetchChabotIcalEvents, fetchLindsayIcalEvents, fetchBADMIcalEvents, fetchCHNIcalEvents } from '@/lib/sources/wordpress-ical'
+import { fetchSJPLBiblioEvents, fetchOaklandLibraryEvents, fetchSMCLBiblioEvents } from '@/lib/sources/bibliocommons'
 import { runSourceSync, getLastSync } from '@/lib/sync-engine'
 import { haversineDistance } from '@/lib/distance'
 import { classifyEventAgeRanges } from '@/lib/age-range'
@@ -63,11 +67,12 @@ export async function GET(req: NextRequest) {
     const want = (name: string) => sourceFilter === 'all' || sourceFilter === name
 
     // ─── Supabase — seeded/curated events ─────────────────────────────────────
-    // Map region param to source filter for Supabase
+    // Hawaii uses source='hawaii-manual' to isolate Hawaii-only events.
+    // SF Bay (and all others) use lat/lng radius filtering — no source filter needed,
+    // since all sfbay sources (nps, funcheap, ebparks, contra-costa-ical, etc.) are
+    // geographically scoped by coordinates anyway.
     const supabaseSourceFilter: string | null =
-      regionParam === 'hawaii' ? 'hawaii-manual' :
-      regionParam === 'sfbay' ? 'manual' :
-      null // null = no filter (return all)
+      regionParam === 'hawaii' ? 'hawaii-manual' : null
 
     const supabaseResult = want('supabase') || sourceFilter === 'all'
       ? await fetchSupabaseEvents(supabaseSourceFilter)
@@ -96,38 +101,80 @@ export async function GET(req: NextRequest) {
 
     // ─── New sources — incremental sync engine ────────────────────────────────
     // Fetch sync state for all new sources in parallel
-    const [funcheapSync, npsSync, ebparksSync, bayAreaKidFunSync, caHomeschoolSync] =
-      await Promise.all([
-        want('funcheap')      ? getLastSync('funcheap')      : null,
-        want('nps')           ? getLastSync('nps')           : null,
-        want('ebparks')       ? getLastSync('ebparks')       : null,
-        want('bayareakidfun') ? getLastSync('bayareakidfun') : null,
-        want('cahomeschool')  ? getLastSync('cahomeschool')  : null,
-      ])
+    const [
+      funcheapSync, npsSync, ebparksSync, bayAreaKidFunSync, caHomeschoolSync,
+      contraCostaSync, eventbriteSFBaySync,
+      chabotSync, lindsaySync, badmSync, chnSync,
+      sjplSync, oaklandLibSync, smclBiblioSync,
+    ] = await Promise.all([
+      want('funcheap')             ? getLastSync('funcheap')             : null,
+      want('nps')                  ? getLastSync('nps')                  : null,
+      want('ebparks')              ? getLastSync('ebparks')              : null,
+      want('bayareakidfun')        ? getLastSync('bayareakidfun')        : null,
+      want('cahomeschool')         ? getLastSync('cahomeschool')         : null,
+      want('contra-costa-ical')    ? getLastSync('contra-costa-ical')    : null,
+      want('eventbrite-sfbay')     ? getLastSync('eventbrite-sfbay')     : null,
+      want('chabot-ical')          ? getLastSync('chabot-ical')          : null,
+      want('lindsay-ical')         ? getLastSync('lindsay-ical')         : null,
+      want('badm-ical')            ? getLastSync('badm-ical')            : null,
+      want('chn-ical')             ? getLastSync('chn-ical')             : null,
+      want('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
+      want('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
+      want('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
+    ])
 
-    const epoch = { lastSyncedAt: new Date('2000-01-01'), lastEtag: null }
+    const empty = { events: [] as HomegrownEvent[], report: null }
 
-    const [funcheapSyncResult, npsSyncResult, ebparksSyncResult, bayAreaKidFunSyncResult, caHomeschoolSyncResult] =
-      await Promise.all([
-        funcheapSync
-          ? runSourceSync('funcheap', (ls, et) => fetchFuncheapEvents(ls, et))
-          : { events: [] as HomegrownEvent[], report: null },
-        npsSync
-          ? runSourceSync('nps', (ls, et) => fetchNpsEvents(ls, et))
-          : { events: [] as HomegrownEvent[], report: null },
-        ebparksSync
-          ? runSourceSync('ebparks', (ls, et) => fetchEastBayParksEvents(ls, et))
-          : { events: [] as HomegrownEvent[], report: null },
-        bayAreaKidFunSync
-          ? runSourceSync('bayareakidfun', (ls, et) => fetchBayAreaKidFunEvents(ls, et))
-          : { events: [] as HomegrownEvent[], report: null },
-        caHomeschoolSync
-          ? runSourceSync('cahomeschool', (ls, et) => fetchCAHomeschoolEvents(ls, et))
-          : { events: [] as HomegrownEvent[], report: null },
-      ])
-
-    // Suppress unused variable warning
-    void epoch
+    const [
+      funcheapSyncResult, npsSyncResult, ebparksSyncResult,
+      bayAreaKidFunSyncResult, caHomeschoolSyncResult,
+      contraCostaResult, eventbriteSFBayResult,
+      chabotResult, lindsayResult, badmResult, chnResult,
+      sjplResult2, oaklandLibResult, smclBiblioResult,
+    ] = await Promise.all([
+      funcheapSync
+        ? runSourceSync('funcheap', (ls, et) => fetchFuncheapEvents(ls, et))
+        : empty,
+      npsSync
+        ? runSourceSync('nps', (ls, et) => fetchNpsEvents(ls, et))
+        : empty,
+      ebparksSync
+        ? runSourceSync('ebparks', (ls, et) => fetchEastBayParksEvents(ls, et))
+        : empty,
+      bayAreaKidFunSync
+        ? runSourceSync('bayareakidfun', (ls, et) => fetchBayAreaKidFunEvents(ls, et))
+        : empty,
+      caHomeschoolSync
+        ? runSourceSync('cahomeschool', (ls, et) => fetchCAHomeschoolEvents(ls, et))
+        : empty,
+      contraCostaSync
+        ? runSourceSync('contra-costa-ical', (ls, et) => fetchContraCostaIcalEvents(ls, et))
+        : empty,
+      eventbriteSFBaySync
+        ? runSourceSync('eventbrite-sfbay', (ls, et) => fetchEventbriteSFBayEvents(ls, et))
+        : empty,
+      chabotSync
+        ? runSourceSync('chabot-ical', (ls, et) => fetchChabotIcalEvents(ls, et))
+        : empty,
+      lindsaySync
+        ? runSourceSync('lindsay-ical', (ls, et) => fetchLindsayIcalEvents(ls, et))
+        : empty,
+      badmSync
+        ? runSourceSync('badm-ical', (ls, et) => fetchBADMIcalEvents(ls, et))
+        : empty,
+      chnSync
+        ? runSourceSync('chn-ical', (ls, et) => fetchCHNIcalEvents(ls, et))
+        : empty,
+      sjplSync
+        ? runSourceSync('sjpl-bibliocommons', (ls, et) => fetchSJPLBiblioEvents(ls, et))
+        : empty,
+      oaklandLibSync
+        ? runSourceSync('oakland-bibliocommons', (ls, et) => fetchOaklandLibraryEvents(ls, et))
+        : empty,
+      smclBiblioSync
+        ? runSourceSync('smcl-bibliocommons', (ls, et) => fetchSMCLBiblioEvents(ls, et))
+        : empty,
+    ])
 
     // Merge SFPL sources, deduplicate by title+date
     const sfplEvents = deduplicateByTitleDate([
@@ -150,6 +197,15 @@ export async function GET(req: NextRequest) {
       ...ebparksSyncResult.events,
       ...bayAreaKidFunSyncResult.events,
       ...caHomeschoolSyncResult.events,
+      ...contraCostaResult.events,
+      ...eventbriteSFBayResult.events,
+      ...chabotResult.events,
+      ...lindsayResult.events,
+      ...badmResult.events,
+      ...chnResult.events,
+      ...sjplResult2.events,
+      ...oaklandLibResult.events,
+      ...smclBiblioResult.events,
     ]
 
     // Classify age ranges for all events
