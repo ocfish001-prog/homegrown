@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, Calendar, Bookmark, MapPin, ChevronDown } from 'lucide-react'
+import { Home, Compass, Calendar, Bookmark, MapPin, ChevronDown, Leaf } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -17,7 +17,7 @@ interface SideNavProps {
   onLocationClick?: () => void
 }
 
-export default function SideNav({ location = 'SF Bay Area', onLocationClick }: SideNavProps) {
+export default function SideNav({ location = 'Big Island, Hawaii', onLocationClick }: SideNavProps) {
   const pathname = usePathname()
 
   return (
@@ -42,7 +42,7 @@ export default function SideNav({ location = 'SF Bay Area', onLocationClick }: S
         )}
         aria-label="Homegrown — go to homepage"
       >
-        <span className="text-2xl" aria-hidden="true">🌱</span>
+        <Leaf className="w-6 h-6 text-sage" aria-hidden="true" />
         <span className="font-serif text-h3">Homegrown</span>
       </Link>
 
@@ -118,7 +118,7 @@ export default function SideNav({ location = 'SF Bay Area', onLocationClick }: S
 
       {/* Footer note */}
       <p className="text-[11px] text-warm-gray-dark leading-relaxed">
-        Enrichment for homeschool families in the SF Bay Area
+        Enrichment for homeschool families on the Big Island, Hawaii
       </p>
     </aside>
   )

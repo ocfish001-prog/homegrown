@@ -92,7 +92,7 @@ export async function fetchSupabaseEvents(): Promise<{
         date: formatDate(row.startDate),
         dateISO: row.startDate,
         endDateISO: row.endDate ?? undefined,
-        location: venue?.name ?? venue?.city ?? 'Bay Area, CA',
+        location: venue?.name ?? venue?.city ?? 'Big Island, HI',
         address: venue?.address ?? undefined,
         lat: venue?.lat ? Number(venue.lat) : undefined,
         lng: venue?.lng ? Number(venue.lng) : undefined,

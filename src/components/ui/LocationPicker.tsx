@@ -157,7 +157,7 @@ export default function LocationPicker({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage'
               )}
             >
-              Reset to SF Bay Area
+              Reset to Big Island, Hawaii
             </button>
           </div>
 

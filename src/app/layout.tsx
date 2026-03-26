@@ -19,7 +19,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: 'Homegrown',
-  description: 'Local enrichment for homeschool families in the SF Bay Area',
+  description: 'Local enrichment for homeschool families on the Big Island, Hawaii',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -57,7 +57,7 @@ export default function RootLayout({
         {/* Layout: side nav on desktop, bottom nav on mobile */}
         <div className="flex min-h-screen w-full">
           {/* Desktop side nav */}
-          <SideNav location="SF Bay Area" />
+          <SideNav location="Big Island, Hawaii" />
 
           {/* Main content area — offset by side nav on desktop */}
           <main

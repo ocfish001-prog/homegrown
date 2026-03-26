@@ -42,10 +42,10 @@ export default function Header() {
           {/* Location chip */}
           <div
             className="flex items-center gap-1 bg-sage/10 text-sage-dark text-sm px-3 py-1 rounded-full"
-            aria-label="Current location: SF Bay Area"
+            aria-label="Current location: Big Island, Hawaii"
           >
             <span aria-hidden="true">📍</span>
-            <span>SF Bay Area</span>
+            <span>Big Island, Hawaii</span>
           </div>
         </nav>
 
@@ -53,10 +53,10 @@ export default function Header() {
         <div className="flex md:hidden items-center gap-3">
           <div
             className="flex items-center gap-1 bg-sage/10 text-sage-dark text-sm px-2 py-1 rounded-full"
-            aria-label="Current location: SF Bay Area"
+            aria-label="Current location: Big Island, Hawaii"
           >
             <span aria-hidden="true">📍</span>
-            <span className="text-xs">SF Bay Area</span>
+            <span className="text-xs">Big Island, Hawaii</span>
           </div>
           <button
             type="button"

@@ -61,9 +61,9 @@ export interface LocationState {
 }
 
 export const DEFAULT_LOCATION: LocationState = {
-  lat: 37.7749,
-  lng: -122.4194,
-  label: 'SF Bay Area',
+  lat: 19.8968,
+  lng: -155.5828,
+  label: 'Big Island, Hawaii',
   radius: 25,
 }
 

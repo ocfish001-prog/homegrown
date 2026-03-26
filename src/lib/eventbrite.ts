@@ -320,7 +320,7 @@ export function mapEventbriteEvent(eb: EventbriteEvent): HomegrownEvent {
     date: dateFormatted,
     dateISO: eb.start.utc,
     endDateISO: eb.end?.utc,
-    location: address || 'SF Bay Area',
+    location: address || 'Big Island, Hawaii',
     address,
     lat,
     lng,
@@ -350,7 +350,7 @@ export function mapDestinationEvent(ev: EventbriteDestinationEvent): HomegrownEv
     category: mapCategory(ev.tags),
     date: formatEventDate(ev.start_date, ev.start_time, ev.timezone),
     dateISO,
-    location: address || 'SF Bay Area',
+    location: address || 'Big Island, Hawaii',
     address,
     lat,
     lng,
@@ -428,7 +428,7 @@ export async function fetchEventbriteEvents(
               const lng = geo?.longitude ? parseFloat(geo.longitude) : undefined
               const address = ev.location?.address
                 ? `${ev.location.address.streetAddress}, ${ev.location.address.addressLocality}, ${ev.location.address.addressRegion} ${ev.location.address.postalCode}`
-                : ev.location?.name ?? 'SF Bay Area'
+                : ev.location?.name ?? 'Big Island, Hawaii'
 
               // Parse date
               const startDate = ev.startDate || ''

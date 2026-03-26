@@ -12,7 +12,7 @@ interface HeroSearchProps {
 }
 
 export default function HeroSearch({
-  location = 'SF Bay Area',
+  location = 'Big Island, Hawaii',
   onLocationClick,
   onSearchChange,
   locationSlot,
