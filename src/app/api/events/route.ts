@@ -1,9 +1,9 @@
-/**
+﻿/**
  * GET /api/events
  *
  * Aggregates real event data from multiple sources.
  * New sources (funcheap, nps, ebparks, bayareakidfun, cahomeschool) use the
- * incremental sync engine — they accept (lastSyncedAt, lastEtag) and return
+ * incremental sync engine â€” they accept (lastSyncedAt, lastEtag) and return
  * only new/changed events. The sync engine handles DB upsert + state tracking.
  *
  * Query params:
@@ -74,9 +74,9 @@ export async function GET(req: NextRequest) {
     const isSFBay = regionParam !== 'hawaii'
     const wantSFBay = (name: string) => isSFBay && want(name)
 
-    // ─── Supabase — seeded/curated events ─────────────────────────────────────
+    // â”€â”€â”€ Supabase â€” seeded/curated events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Hawaii uses source='hawaii-manual' to isolate Hawaii-only events.
-    // SF Bay (and all others) use lat/lng radius filtering — no source filter needed,
+    // SF Bay (and all others) use lat/lng radius filtering â€” no source filter needed,
     // since all sfbay sources (nps, funcheap, ebparks, contra-costa-ical, etc.) are
     // geographically scoped by coordinates anyway.
     const supabaseSourceFilter: string | null =
@@ -86,8 +86,8 @@ export async function GET(req: NextRequest) {
       ? await fetchSupabaseEvents(supabaseSourceFilter, regionTimezone)
       : { events: [] as HomegrownEvent[] }
 
-    // ─── Legacy sources (original signature, no incremental sync yet) ───────
-    // All legacy sources are SF Bay only — gate with wantSFBay to prevent
+    // â”€â”€â”€ Legacy sources (original signature, no incremental sync yet) â”€â”€â”€â”€â”€â”€â”€
+    // All legacy sources are SF Bay only â€” gate with wantSFBay to prevent
     // cross-region bleed when Hawaii is selected.
     const [
       eventbriteResult,
@@ -109,7 +109,7 @@ export async function GET(req: NextRequest) {
       wantSFBay('sffun')      ? fetchSFFunEvents()                       : emptyResult(),
     ])
 
-    // ─── New sources — incremental sync engine ────────────────────────────────
+    // â”€â”€â”€ New sources â€” incremental sync engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Fetch sync state for all new sources in parallel
     const [
       funcheapSync, npsSync, ebparksSync, bayAreaKidFunSync, caHomeschoolSync,
@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
       sjplSync, oaklandLibSync, smclBiblioSync,
       hiloPalaceSync,
     ] = await Promise.all([
-      // SF Bay only sources — gated with wantSFBay
+      // SF Bay only sources â€” gated with wantSFBay
       wantSFBay('funcheap')             ? getLastSync('funcheap')             : null,
       wantSFBay('nps')                  ? getLastSync('nps')                  : null,
       wantSFBay('ebparks')              ? getLastSync('ebparks')              : null,
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
       wantSFBay('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
       wantSFBay('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
       wantSFBay('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
-      // Hawaii sources — only run when region=hawaii
+      // Hawaii sources â€” only run when region=hawaii
       (want('hilo-palace-ical') && regionParam === 'hawaii') ? getLastSync('hilo-palace-ical') : null,
     ])
 
@@ -239,9 +239,11 @@ export async function GET(req: NextRequest) {
     })
 
     // Filter by radius (only for events with coords)
-    allEvents = allEvents.filter((ev) =>
-      ev.distance == null ? true : ev.distance <= radius
-    )
+    allEvents = allEvents.filter((ev) => {
+      // If region is sfbay, exclude events with no coordinates (they're likely Hawaii-manual)
+      if (regionParam === 'sfbay' && ev.distance == null) return false
+      return ev.distance == null ? true : ev.distance <= radius
+    })
 
     // Filter by date
     if (dateFilter !== 'all') {
@@ -330,7 +332,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        // No CDN caching — each request fetches fresh from sources.
+        // No CDN caching â€” each request fetches fresh from sources.
         // Next.js revalidate is set per-fetch() call in each source.
         'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
       },
@@ -353,3 +355,5 @@ function deduplicateByTitleDate(events: HomegrownEvent[]): HomegrownEvent[] {
     return true
   })
 }
+
+

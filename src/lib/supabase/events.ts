@@ -1,5 +1,5 @@
-/**
- * Fetch events from Supabase — server-side only.
+﻿/**
+ * Fetch events from Supabase â€” server-side only.
  * Returns events in HomegrownEvent format.
  * Uses service role key so it works even before RLS is fully configured.
  */
@@ -36,7 +36,7 @@ interface SupabaseEventRow {
 function formatDate(isoString: string, timezone?: string): string {
   const d = new Date(isoString)
   const tz = timezone || 'America/Los_Angeles'
-  // Format: "Sat, Apr 5 · 10:00 AM"
+  // Format: "Sat, Apr 5 Â· 10:00 AM"
   const datePart = d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -48,7 +48,7 @@ function formatDate(isoString: string, timezone?: string): string {
     minute: '2-digit',
     timeZone: tz,
   })
-  return `${datePart} · ${timePart}`
+  return `${datePart} Â· ${timePart}`
 }
 
 function mapAgeRange(raw: string | null): AgeRange | undefined {
@@ -80,6 +80,7 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null, timezone
 
     // Apply source filter if provided (e.g. 'hawaii-manual' for Hawaii region).
     // For SF Bay (null), exclude Hawaii-only events so they don't waste the limit budget.
+    console.log('[Supabase] sourceFilter:', sourceFilter)
     if (sourceFilter) {
       query = query.eq('source', sourceFilter)
     } else {
@@ -128,3 +129,4 @@ export async function fetchSupabaseEvents(sourceFilter?: string | null, timezone
     return { events: [], error: String(err) }
   }
 }
+
