@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import HeroSearch from '@/components/ui/HeroSearch'
 import FilterBar from '@/components/ui/FilterBar'
 import EventGrid from '@/components/ui/EventGrid'
 import RegionSwitcher from '@/components/ui/RegionSwitcher'
 import SetupBanner from '@/components/ui/SetupBanner'
+import EventDetailModal from '@/components/ui/EventDetailModal'
 import type { EventCardData } from '@/components/ui/EventCard'
 import type { AgeRange } from '@/lib/types'
 import type { DateFilter } from '@/components/ui/FilterBar'
@@ -14,8 +14,8 @@ import type { EventsApiResponse } from '@/lib/types'
 import { useRegion } from '@/context/RegionContext'
 
 export default function HomePage() {
-  const router = useRouter()
   const { region, regionKey } = useRegion()
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
 
   // Filters — controlled state
   const [activeCategory, setActiveCategory] = useState('All')
@@ -118,7 +118,7 @@ export default function HomePage() {
   }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
   function handleEventClick(id: string) {
-    router.push(`/events/${id}`)
+    setSelectedEventId(id)
   }
 
   function resetFilters() {
@@ -131,6 +131,11 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
+      {/* Event detail modal */}
+      <EventDetailModal
+        eventId={selectedEventId}
+        onClose={() => setSelectedEventId(null)}
+      />
       {/* Screen reader announcements */}
       <div
         role="status"
