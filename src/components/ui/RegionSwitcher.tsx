@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { MapPin, ChevronDown, Check } from 'lucide-react'
@@ -63,12 +63,12 @@ export default function RegionSwitcher({ className, compact = false }: RegionSwi
 
       {isOpen && (
         <>
-          {/* Dropdown — z-[200] clears FilterBar stacking context (z-40) */}
+          {/* Dropdown â€” z-[9999] clears FilterBar stacking context (z-40) */}
           <div
             role="listbox"
             aria-label="Select region"
             className={cn(
-              'absolute top-full left-0 mt-2 z-[200]',
+              'absolute top-full left-0 mt-2 z-[9999]',
               'min-w-[200px] bg-white rounded-xl shadow-lg border border-warm-gray/20',
               'py-1.5',
               'animate-fade-up'
@@ -113,9 +113,9 @@ export default function RegionSwitcher({ className, compact = false }: RegionSwi
             ))}
           </div>
 
-          {/* Backdrop — z-[100] sits above FilterBar (z-40) but below dropdown (z-[200]) */}
+          {/* Backdrop â€” z-[9998] sits above FilterBar (z-40) but below dropdown (z-[9999]) */}
           <div
-            className="fixed inset-0 z-[100]"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
@@ -124,3 +124,5 @@ export default function RegionSwitcher({ className, compact = false }: RegionSwi
     </div>
   )
 }
+
+

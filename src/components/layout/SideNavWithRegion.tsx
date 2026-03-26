@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -21,7 +21,7 @@ export default function SideNavWithRegion() {
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col',
+        'hidden md:flex flex-col overflow-visible',
         'w-56 shrink-0',
         'fixed left-0 top-0 h-full z-40',
         'bg-cream border-r border-warm-gray/40',
@@ -38,7 +38,7 @@ export default function SideNavWithRegion() {
           'hover:text-sage transition-colors',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage rounded'
         )}
-        aria-label="Homegrown — go to homepage"
+        aria-label="Homegrown â€” go to homepage"
       >
         <Leaf className="w-6 h-6 text-sage" aria-hidden="true" />
         <span className="font-serif text-h3">Homegrown</span>
@@ -99,8 +99,9 @@ export default function SideNavWithRegion() {
 
       {/* Footer note */}
       <p className="text-[11px] text-warm-gray-dark leading-relaxed">
-        Enrichment for homeschool families · {region.label}
+        Enrichment for homeschool families Â· {region.label}
       </p>
     </aside>
   )
 }
+
