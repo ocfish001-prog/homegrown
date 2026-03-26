@@ -48,6 +48,7 @@ export default function RegionSwitcher({ className, compact = false }: RegionSwi
         aria-label="Select region"
         style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left }}
         className="z-[9999] min-w-[200px] bg-white rounded-xl shadow-lg border border-warm-gray/20 py-1.5"
+        onClick={(e) => e.stopPropagation()}
       >
         <p className="text-[10px] font-semibold text-warm-gray-dark uppercase tracking-wide px-3 py-1.5">
           Region
