@@ -3,7 +3,7 @@
  *
  * Aggregates real event data from multiple sources.
  * New sources (funcheap, nps, ebparks, bayareakidfun, cahomeschool) use the
- * incremental sync engine â€” they accept (lastSyncedAt, lastEtag) and return
+ * incremental sync engine â€" they accept (lastSyncedAt, lastEtag) and return
  * only new/changed events. The sync engine handles DB upsert + state tracking.
  *
  * Query params:
@@ -29,6 +29,7 @@ import { fetchEventbriteSFBayEvents } from '@/lib/sources/eventbrite-sfbay'
 import { fetchChabotIcalEvents, fetchLindsayIcalEvents, fetchBADMIcalEvents, fetchCHNIcalEvents } from '@/lib/sources/wordpress-ical'
 import { fetchSJPLBiblioEvents, fetchOaklandLibraryEvents, fetchSMCLBiblioEvents } from '@/lib/sources/bibliocommons'
 import { fetchHiloPalaceIcalEvents } from '@/lib/sources/hilo-palace-ical'
+import { fetchBigIslandNowEvents } from '@/lib/sources/bigislandnow'
 import { runSourceSync, getLastSync } from '@/lib/sync-engine'
 import { haversineDistance } from '@/lib/distance'
 import { classifyEventAgeRanges } from '@/lib/age-range'
@@ -74,9 +75,9 @@ export async function GET(req: NextRequest) {
     const isSFBay = regionParam !== 'hawaii'
     const wantSFBay = (name: string) => isSFBay && want(name)
 
-    // â”€â”€â”€ Supabase â€” seeded/curated events â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Supabase â€" seeded/curated events â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     // Hawaii uses source='hawaii-manual' to isolate Hawaii-only events.
-    // SF Bay (and all others) use lat/lng radius filtering â€” no source filter needed,
+    // SF Bay (and all others) use lat/lng radius filtering â€" no source filter needed,
     // since all sfbay sources (nps, funcheap, ebparks, contra-costa-ical, etc.) are
     // geographically scoped by coordinates anyway.
     const supabaseSourceFilter: string | null =
@@ -86,8 +87,8 @@ export async function GET(req: NextRequest) {
       ? await fetchSupabaseEvents(supabaseSourceFilter, regionTimezone)
       : { events: [] as HomegrownEvent[] }
 
-    // â”€â”€â”€ Legacy sources (original signature, no incremental sync yet) â”€â”€â”€â”€â”€â”€â”€
-    // All legacy sources are SF Bay only â€” gate with wantSFBay to prevent
+    // â"€â"€â"€ Legacy sources (original signature, no incremental sync yet) â"€â"€â"€â"€â"€â"€â"€
+    // All legacy sources are SF Bay only â€" gate with wantSFBay to prevent
     // cross-region bleed when Hawaii is selected.
     const [
       eventbriteResult,
@@ -109,16 +110,16 @@ export async function GET(req: NextRequest) {
       wantSFBay('sffun')      ? fetchSFFunEvents()                       : emptyResult(),
     ])
 
-    // â”€â”€â”€ New sources â€” incremental sync engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ New sources â€" incremental sync engine â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     // Fetch sync state for all new sources in parallel
     const [
       funcheapSync, npsSync, ebparksSync, bayAreaKidFunSync, caHomeschoolSync,
       contraCostaSync, eventbriteSFBaySync,
       chabotSync, lindsaySync, badmSync, chnSync,
       sjplSync, oaklandLibSync, smclBiblioSync,
-      hiloPalaceSync,
+      hiloPalaceSync, bigIslandNowSync,
     ] = await Promise.all([
-      // SF Bay only sources â€” gated with wantSFBay
+      // SF Bay only sources â€" gated with wantSFBay
       wantSFBay('funcheap')             ? getLastSync('funcheap')             : null,
       wantSFBay('nps')                  ? getLastSync('nps')                  : null,
       wantSFBay('ebparks')              ? getLastSync('ebparks')              : null,
@@ -133,8 +134,9 @@ export async function GET(req: NextRequest) {
       wantSFBay('sjpl-bibliocommons')   ? getLastSync('sjpl-bibliocommons')   : null,
       wantSFBay('oakland-bibliocommons')? getLastSync('oakland-bibliocommons'): null,
       wantSFBay('smcl-bibliocommons')   ? getLastSync('smcl-bibliocommons')   : null,
-      // Hawaii sources â€” only run when region=hawaii
+      // Hawaii sources â€" only run when region=hawaii
       (want('hilo-palace-ical') && regionParam === 'hawaii') ? getLastSync('hilo-palace-ical') : null,
+      (want('bigislandnow') && regionParam === 'hawaii') ? getLastSync('bigislandnow') : null,
     ])
 
     const empty = { events: [] as HomegrownEvent[], report: null }
@@ -145,7 +147,7 @@ export async function GET(req: NextRequest) {
       contraCostaResult, eventbriteSFBayResult,
       chabotResult, lindsayResult, badmResult, chnResult,
       sjplResult2, oaklandLibResult, smclBiblioResult,
-      hiloPalaceResult,
+      hiloPalaceResult, bigIslandNowResult,
     ] = await Promise.all([
       funcheapSync
         ? runSourceSync('funcheap', (ls, et) => fetchFuncheapEvents(ls, et))
@@ -192,6 +194,9 @@ export async function GET(req: NextRequest) {
       hiloPalaceSync
         ? runSourceSync('hilo-palace-ical', (ls, et) => fetchHiloPalaceIcalEvents(ls, et))
         : empty,
+      bigIslandNowSync
+        ? runSourceSync('bigislandnow', (ls, et) => fetchBigIslandNowEvents(ls, et))
+        : empty,
     ])
 
     // Merge SFPL sources, deduplicate by title+date
@@ -225,6 +230,7 @@ export async function GET(req: NextRequest) {
       ...oaklandLibResult.events,
       ...smclBiblioResult.events,
       ...hiloPalaceResult.events,
+      ...bigIslandNowResult.events,
     ]
 
     // Classify age ranges for all events
@@ -332,7 +338,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        // No CDN caching â€” each request fetches fresh from sources.
+        // No CDN caching â€" each request fetches fresh from sources.
         // Next.js revalidate is set per-fetch() call in each source.
         'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
