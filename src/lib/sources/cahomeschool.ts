@@ -59,7 +59,7 @@ function formatCHNDate(dateStr: string): string {
       weekday: 'short', month: 'short', day: 'numeric',
       hour: 'numeric', minute: '2-digit',
       timeZone: 'America/Los_Angeles',
-    }).replace(',', ' ·')
+    }).replace(',', ' \u00B7')
   } catch {
     return dateStr
   }

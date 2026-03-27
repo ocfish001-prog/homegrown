@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 
 interface HeroSearchProps {
   location?: string
+  value?: string
   onLocationClick?: () => void
   onSearchChange?: (value: string) => void
   locationSlot?: React.ReactNode
@@ -13,6 +14,7 @@ interface HeroSearchProps {
 
 export default function HeroSearch({
   location = 'Big Island, Hawaii',
+  value,
   onLocationClick,
   onSearchChange,
   locationSlot,
@@ -56,6 +58,7 @@ export default function HeroSearch({
         <input
           type="search"
           placeholder="Search events, classes, co-ops..."
+          value={value ?? ''}
           onChange={(e) => onSearchChange?.(e.target.value)}
           className={cn(
             'w-full h-12 pl-11 pr-4',

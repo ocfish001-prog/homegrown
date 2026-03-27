@@ -67,7 +67,7 @@ function parseUCANREvents(html: string): HomegrownEvent[] {
           day: 'numeric',
           timeZone: 'America/Los_Angeles',
         }
-        dateFormatted = parsed.toLocaleDateString('en-US', opts).replace(',', ' ·')
+        dateFormatted = parsed.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
       }
     } catch { /* keep raw */ }
 
@@ -177,7 +177,7 @@ function formatDate(dateStr?: string): string {
       month: 'short',
       day: 'numeric',
       timeZone: 'America/Los_Angeles',
-    }).replace(',', ' ·')
+    }).replace(',', ' \u00B7')
   } catch {
     return dateStr
   }

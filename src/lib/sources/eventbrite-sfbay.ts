@@ -65,7 +65,7 @@ function mapEventbriteEvent(ev: any, area: typeof SEARCH_AREAS[0]): HomegrownEve
         hour: 'numeric', minute: '2-digit',
         timeZone: 'America/Los_Angeles',
       })
-      dateDisplay = `${datePart.replace(',', ' ·')} · ${timePart}`
+      dateDisplay = `${datePart.replace(',', ' \u00B7')} \u00B7 ${timePart}`
     } catch { /* ignore */ }
   }
 

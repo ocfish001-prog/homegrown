@@ -81,7 +81,7 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
     timeZone: 'America/Los_Angeles',
-  }).replace(',', ' ·')
+  }).replace(',', ' \u00B7')
 }
 
 function mapCategory(title: string, cats: string[]): string {

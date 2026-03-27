@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import HeroSearch from '@/components/ui/HeroSearch'
@@ -17,7 +17,7 @@ export default function HomePage() {
   const { region, regionKey } = useRegion()
   const [selectedEvent, setSelectedEvent] = useState<EventCardData | null>(null)
 
-  // Filters â€” controlled state
+  // Filters — controlled state
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeAgeRange, setActiveAgeRange] = useState<AgeRange | 'All'>('All')
   const [activeDateFilter, setActiveDateFilter] = useState<DateFilter>('all')
@@ -30,9 +30,8 @@ export default function HomePage() {
   const [error, setError] = useState(false)
   const [setupMessages, setSetupMessages] = useState<string[]>([])
 
-  // Refs for debounce and abort
+  // Refs for debounce
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
 
   // Track previous region to detect changes and reset filters
   const prevRegionKeyRef = useRef<string>(regionKey)
@@ -48,13 +47,9 @@ export default function HomePage() {
     setDebouncedQuery('')
   }
 
-  // Debounce search input — clear immediately when empty, debounce otherwise
+  // Debounce search input
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    if (searchQuery === '') {
-      setDebouncedQuery('')
-      return
-    }
     debounceTimer.current = setTimeout(() => {
       setDebouncedQuery(searchQuery)
     }, 350)
@@ -63,14 +58,9 @@ export default function HomePage() {
     }
   }, [searchQuery])
 
-  // Fetch events â€” fires whenever any filter or region changes
+  // Fetch events — fires whenever any filter or region changes
   useEffect(() => {
-    // Cancel any in-flight request
-    if (abortRef.current) {
-      abortRef.current.abort()
-    }
     const controller = new AbortController()
-    abortRef.current = controller
 
     const fetchEvents = async () => {
       setLoading(true)
@@ -103,7 +93,8 @@ export default function HomePage() {
           setSetupMessages([])
         }
       } catch (err) {
-        if ((err as Error).name === 'AbortError') return // ignore cancelled fetches
+        // Treat any error from an aborted controller as a silent cancel
+        if (controller.signal.aborted) return
         console.error('[HomePage] Failed to fetch events:', err)
         setEvents([])
         setError(true)
@@ -116,9 +107,9 @@ export default function HomePage() {
 
     fetchEvents()
 
-    // No cleanup abort here — abortRef handles cancellation of stale requests
-    // at the top of each new effect run. Removing cleanup prevents React strict
-    // mode's double-invoke from aborting the initial fetch before it completes.
+    return () => {
+      controller.abort()
+    }
   }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
   function handleEventClick(id: string) {
@@ -155,11 +146,12 @@ export default function HomePage() {
       {/* Hero + Search */}
       <HeroSearch
         location={region.label}
+        value={searchQuery}
         onSearchChange={setSearchQuery}
         locationSlot={<RegionSwitcher />}
       />
 
-      {/* Category + Date + Age Range filter bar â€” sticky */}
+      {/* Category + Date + Age Range filter bar — sticky */}
       <FilterBar
         key={regionKey}
         onCategoryChange={setActiveCategory}
@@ -170,7 +162,7 @@ export default function HomePage() {
       {/* Error banner */}
       {error && !loading && (
         <div className="mx-4 my-3 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3">
-          <span className="text-2xl">âš ï¸</span>
+          <span className="text-2xl">⚠️</span>
           <div>
             <p className="text-[14px] font-medium text-red-700">Couldn&apos;t load events</p>
             <p className="text-[13px] text-red-600">Check your connection and try again.</p>
@@ -190,7 +182,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Setup banners â€” shown when APIs need configuration */}
+      {/* Setup banners — shown when APIs need configuration */}
       {setupMessages.length > 0 && !loading && events.length === 0 && (
         <div className="px-lg pt-3 space-y-2">
           {setupMessages.map((msg, i) => (
@@ -230,4 +222,3 @@ export default function HomePage() {
     </div>
   )
 }
-

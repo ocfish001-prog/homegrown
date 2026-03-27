@@ -73,7 +73,7 @@ function formatDate(d: Date): string {
     hour: 'numeric', minute: '2-digit',
     timeZone: 'America/Los_Angeles',
   })
-  return `${datePart.replace(',', ' ·')} · ${timePart}`
+  return `${datePart.replace(',', ' \u00B7')} \u00B7 ${timePart}`
 }
 
 function mapCategory(title: string, description: string): string {

@@ -26,7 +26,7 @@ export interface HomegrownEvent {
   title: string
   description?: string
   category: string
-  date: string // Human-readable: "Sat Apr 5 · 10:00 AM"
+  date: string // Human-readable: "Sat Apr 5 \u00B7 10:00 AM"
   dateISO?: string // ISO 8601 for calendar/sorting
   endDateISO?: string
   location: string

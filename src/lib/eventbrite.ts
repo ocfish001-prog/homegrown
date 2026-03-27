@@ -222,7 +222,7 @@ function formatEventDate(startDate: string, startTime: string, timezone: string)
       minute: '2-digit',
       timeZone: timezone || 'America/Los_Angeles',
     }
-    return dt.toLocaleDateString('en-US', opts).replace(',', ' ·')
+    return dt.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
   } catch {
     return `${startDate} ${startTime}`
   }
@@ -309,7 +309,7 @@ export function mapEventbriteEvent(eb: EventbriteEvent): HomegrownEvent {
       minute: '2-digit',
       timeZone: 'America/Los_Angeles',
     }
-    dateFormatted = d.toLocaleDateString('en-US', opts).replace(',', ' ·')
+    dateFormatted = d.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
   } catch {}
 
   return {
@@ -442,7 +442,7 @@ export async function fetchEventbriteEvents(
                     day: 'numeric',
                     timeZone: 'America/Los_Angeles',
                   }
-                  dateFormatted = d.toLocaleDateString('en-US', opts).replace(',', ' ·')
+                  dateFormatted = d.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
                 }
               } catch {}
 

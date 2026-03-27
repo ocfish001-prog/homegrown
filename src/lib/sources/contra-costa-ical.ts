@@ -47,7 +47,7 @@ function formatDate(d: Date): string {
   })
   // Only show time if it's not midnight
   const isAllDay = d.getHours() === 0 && d.getMinutes() === 0
-  return isAllDay ? datePart.replace(',', ' ·') : `${datePart.replace(',', ' ·')} · ${timePart}`
+  return isAllDay ? datePart.replace(',', ' \u00B7') : `${datePart.replace(',', ' \u00B7')} \u00B7 ${timePart}`
 }
 
 function unescapeIcal(s: string): string {

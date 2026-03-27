@@ -110,7 +110,7 @@ function parseTribeDate(dateStr: string, timezone: string): string {
       minute: '2-digit',
       timeZone: timezone || 'America/Los_Angeles',
     }
-    return d.toLocaleDateString('en-US', opts).replace(',', ' ·')
+    return d.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
   } catch {
     return dateStr
   }

@@ -97,7 +97,7 @@ export default function LocationPicker({
       >
         <MapPin className="w-3.5 h-3.5 text-sage" aria-hidden="true" />
         <span>{location.label}</span>
-        <span className="text-sage/70 text-[11px]">· {location.radius}mi</span>
+        <span className="text-sage/70 text-[11px]">{'\u00B7'} {location.radius}mi</span>
         <ChevronDown
           className={cn(
             'w-3.5 h-3.5 text-sage/70 transition-transform duration-150',

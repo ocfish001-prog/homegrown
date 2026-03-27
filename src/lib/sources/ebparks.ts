@@ -116,7 +116,7 @@ function parseEbparksPage(content: string): HomegrownEvent[] {
             weekday: 'short', month: 'short', day: 'numeric',
             hour: 'numeric', minute: '2-digit',
             timeZone: 'America/Los_Angeles',
-          }).replace(',', ' ·')
+          }).replace(',', ' \u00B7')
         } else {
           dateDisplay = dateStr
         }
@@ -244,7 +244,7 @@ export async function fetchEastBayParksEvents(
               weekday: 'short', month: 'short', day: 'numeric',
               hour: 'numeric', minute: '2-digit',
               timeZone: 'America/Los_Angeles',
-            }).replace(',', ' ·')
+            }).replace(',', ' \u00B7')
           } else {
             dateDisplay = dateStr
           }

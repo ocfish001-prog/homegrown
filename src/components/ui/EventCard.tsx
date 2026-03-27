@@ -199,7 +199,7 @@ export default function EventCard({ event, onSave, onClick, className, style }: 
             <span className="truncate">
               {event.location}
               {event.address && event.address !== event.location && (
-                <span className="text-warm-gray-dark/70"> · {event.address}</span>
+                <span className="text-warm-gray-dark/70"> {'\u00B7'} {event.address}</span>
               )}
             </span>
           </span>

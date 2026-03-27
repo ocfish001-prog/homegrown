@@ -42,7 +42,7 @@ function formatCalAcademyDate(dateStr?: string): string {
       minute: '2-digit',
       timeZone: 'America/Los_Angeles',
     }
-    return d.toLocaleDateString('en-US', opts).replace(',', ' ·')
+    return d.toLocaleDateString('en-US', opts).replace(',', ' \u00B7')
   } catch {
     return dateStr
   }

@@ -71,7 +71,7 @@ function parseNpsTime(ev: any): { dateISO: string | undefined; dateDisplay: stri
       weekday: 'short', month: 'short', day: 'numeric',
       ...(timeStr ? { hour: 'numeric', minute: '2-digit' } : {}),
       timeZone: 'America/Los_Angeles',
-    }).replace(',', ' ·')
+    }).replace(',', ' \u00B7')
 
     return { dateISO: d.toISOString(), dateDisplay: display }
   } catch {

@@ -54,7 +54,7 @@ function formatDate(d: Date): string {
     timeZone: 'Pacific/Honolulu',
   })
   const isAllDay = d.getUTCHours() === 10 && d.getUTCMinutes() === 0 // midnight HST = 10:00 UTC
-  return isAllDay ? datePart.replace(',', ' ·') : `${datePart.replace(',', ' ·')} · ${timePart}`
+  return isAllDay ? datePart.replace(',', ' \u00B7') : `${datePart.replace(',', ' \u00B7')} \u00B7 ${timePart}`
 }
 
 function unescapeIcal(s: string): string {
