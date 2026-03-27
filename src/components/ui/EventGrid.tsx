@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState, useEffect } from 'react'
 import EventCard, { type EventCardData } from './EventCard'
@@ -7,7 +7,7 @@ import EmptyState from './EmptyState'
 import { cn } from '@/lib/utils'
 import { useSavedEvents } from '@/hooks/useSavedEvents'
 
-const PAGE_SIZE = 24
+const PAGE_SIZE = 48
 
 interface EventGridProps {
   events: EventCardData[]
@@ -54,7 +54,7 @@ export default function EventGrid({
     if (searchQuery) {
       return (
         <EmptyState
-          icon="🔍"
+          icon="ðŸ”"
           headline={`No results for "${searchQuery}"`}
           body="Try different keywords or browse all categories."
           primaryAction={{
@@ -69,8 +69,8 @@ export default function EventGrid({
     if (category === 'All' && regionKey === 'sfbay') {
       return (
         <EmptyState
-          icon="🌉"
-          headline="Loading SF Bay Events…"
+          icon="ðŸŒ‰"
+          headline="Loading SF Bay Eventsâ€¦"
           body="We're pulling in events from parks, libraries, and family venues across the Bay Area. If this keeps showing, try refreshing."
           primaryAction={{
             label: 'Refresh',
@@ -85,7 +85,7 @@ export default function EventGrid({
 
     return (
       <EmptyState
-        icon={category === 'All' ? '🌱' : '🔍'}
+        icon={category === 'All' ? 'ðŸŒ±' : 'ðŸ”'}
         headline={
           category === 'All'
             ? "No events found nearby"
@@ -148,3 +148,4 @@ export default function EventGrid({
     </div>
   )
 }
+
