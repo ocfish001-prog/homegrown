@@ -36,7 +36,7 @@ interface SupabaseEventRow {
 function formatDate(isoString: string, timezone?: string): string {
   const d = new Date(isoString)
   const tz = timezone || 'America/Los_Angeles'
-  // Format: "Sat, Apr 5 Â· 10:00 AM"
+  // Format: "Sat, Apr 5 · 10:00 AM"
   const datePart = d.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -48,7 +48,7 @@ function formatDate(isoString: string, timezone?: string): string {
     minute: '2-digit',
     timeZone: tz,
   })
-  return `${datePart} Â· ${timePart}`
+  return `${datePart} \u00B7 ${timePart}`
 }
 
 function mapAgeRange(raw: string | null): AgeRange | undefined {

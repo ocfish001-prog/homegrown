@@ -48,9 +48,13 @@ export default function HomePage() {
     setDebouncedQuery('')
   }
 
-  // Debounce search input
+  // Debounce search input — clear immediately when empty, debounce otherwise
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    if (searchQuery === '') {
+      setDebouncedQuery('')
+      return
+    }
     debounceTimer.current = setTimeout(() => {
       setDebouncedQuery(searchQuery)
     }, 350)
@@ -112,9 +116,9 @@ export default function HomePage() {
 
     fetchEvents()
 
-    return () => {
-      controller.abort()
-    }
+    // No cleanup abort here — abortRef handles cancellation of stale requests
+    // at the top of each new effect run. Removing cleanup prevents React strict
+    // mode's double-invoke from aborting the initial fetch before it completes.
   }, [region, regionKey, activeCategory, activeAgeRange, activeDateFilter, debouncedQuery])
 
   function handleEventClick(id: string) {

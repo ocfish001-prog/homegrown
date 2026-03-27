@@ -1,0 +1,51 @@
+{
+  "results": {
+    "pageLoad": {
+      "pass": false,
+      "notes": [
+        "1 console errors"
+      ]
+    },
+    "regionSwitcher": {
+      "pass": true,
+      "notes": []
+    },
+    "eventModal": {
+      "pass": true,
+      "notes": [
+        "Modal content: EventsFreePukalani Midweek Market - WaimeaWed, Apr 1 Â· 5:30 AM – 8:00 PMPukalani Stables - Midweek "
+      ]
+    },
+    "filters": {
+      "pass": true,
+      "notes": []
+    },
+    "savesFavorites": {
+      "pass": true,
+      "notes": []
+    },
+    "search": {
+      "pass": false,
+      "notes": [
+        "Error: searchInput.triple_click is not a function"
+      ]
+    },
+    "loadMore": {
+      "pass": true,
+      "notes": []
+    },
+    "mobile": {
+      "pass": true,
+      "notes": []
+    },
+    "navigation": {
+      "pass": true,
+      "notes": []
+    }
+  },
+  "bugs": [],
+  "passed": 7,
+  "total": 9,
+  "verdict": "APPROVED",
+  "modalContent": "EventsFreePukalani Midweek Market - WaimeaWed, Apr 1 Â· 5:30 AM – 8:00 PMPukalani Stables - Midweek Market67-1419 Mamalahoa HwyGet Directions10 mi from youFreeAll AgesSaveAdd to CalendarAdd to Google "
+}
