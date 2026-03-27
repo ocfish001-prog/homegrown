@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Region definitions for the region switcher.
  * Stored in localStorage under 'homegrown_region'.
  */
@@ -11,7 +11,7 @@ export const REGIONS = {
     city: 'Hilo, HI',
     lat: 19.8968,
     lng: -155.5828,
-    radius: 25,
+    radius: 80,
     sourceFilter: 'hawaii-manual',
     timezone: 'Pacific/Honolulu',
   },
@@ -53,3 +53,5 @@ export function storeRegion(region: RegionKey): void {
     // ignore
   }
 }
+
+
