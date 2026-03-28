@@ -1,11 +1,18 @@
 /**
  * BigIslandNow Events Scraper
  * Source: https://bigislandnow.com/events/
- * Scrapes The Events Calendar (WordPress) events listing for Big Island Hawaii.
+ *
+ * STATUS: BROKEN (2026-03-27)
+ * The events page is now fully JavaScript-rendered via a custom
+ * `eventlistings` WordPress plugin. Server-side HTML has no event content.
+ * This scraper returns 0 events. Needs either:
+ *   1. Headless browser (Playwright) to render the JS
+ *   2. Discovery of the internal API endpoint the JS calls
+ *   3. Data partnership with BigIslandNow
  *
  * INCREMENTAL SYNC:
  * - Scrapes HTML, extracts structured event data
- * - ID: slug from event URL
+ * - ID: stable event slug/token from event URL
  * - ETag: HTTP ETag/Last-Modified for 304 optimization
  */
 import type { HomegrownEvent } from '../types'
@@ -24,19 +31,32 @@ function stripHtml(html: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&[a-z]+;/g, ' ')
+    .replace(/&[a-z]+;/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
+function normalizeUrl(url: string): string {
+  if (!url) return BASE_URL
+  try {
+    return new URL(url, BASE_URL).toString()
+  } catch {
+    return BASE_URL
+  }
+}
+
 function slugToId(url: string): string {
   try {
-    const u = new URL(url)
-    const parts = u.pathname.replace(/\/$/, '').split('/')
-    return parts[parts.length - 1] || u.pathname.replace(/[^a-z0-9]/g, '-').substring(0, 60)
+    const u = new URL(normalizeUrl(url))
+    const parts = u.pathname.replace(/\/$/, '').split('/').filter(Boolean)
+    const eventIdx = parts.lastIndexOf('event')
+    if (eventIdx >= 0 && parts[eventIdx + 1]) return parts[eventIdx + 1]!
+    return parts[parts.length - 1] || u.pathname.replace(/[^a-z0-9]/gi, '-').substring(0, 60).toLowerCase()
   } catch {
-    return url.replace(/[^a-z0-9]/g, '-').substring(0, 60)
+    return url.replace(/[^a-z0-9]/gi, '-').substring(0, 60).toLowerCase()
   }
 }
 
@@ -56,80 +76,106 @@ function mapCategory(title: string, desc: string): string {
   return 'Events'
 }
 
-/**
- * Parse a BigIslandNow events page and extract event data.
- * The Events Calendar (WordPress) renders events in article elements with
- * class "tribe_events_cat-*" or inside .tribe-events-loop.
- */
-function parseBigIslandNowHtml(html: string): Array<{
+interface ParsedBigIslandNowEvent {
   title: string
   url: string
   date: string
   dateISO: string | null
   location: string
   description: string
-}> {
-  const events: Array<{
-    title: string
-    url: string
-    date: string
-    dateISO: string | null
-    location: string
-    description: string
-  }> = []
+}
 
-  // The Events Calendar structure: articles with class containing tribe-events
-  // Extract event articles
-  const articleRe = /<article[^>]+class="[^"]*tribe[^"]*"[^>]*>([\s\S]*?)<\/article>/gi
-  let articleMatch: RegExpExecArray | null
+function parseJsonLdBlock(jsonText: string): Partial<ParsedBigIslandNowEvent> {
+  try {
+    const parsed = JSON.parse(jsonText) as {
+      '@type'?: string
+      name?: string
+      startDate?: string
+      description?: string
+      location?: { name?: string } | string
+    }
 
-  // eslint-disable-next-line no-cond-assign
-  while ((articleMatch = articleRe.exec(html)) !== null) {
-    const articleHtml = articleMatch[1] ?? ''
+    if (parsed['@type'] !== 'Event') return {}
 
-    // Title + URL
-    const titleMatch = articleHtml.match(/<h2[^>]*class="[^"]*tribe-events-list-event-title[^"]*"[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>([^<]+)<\/a>/i)
-      || articleHtml.match(/<a[^>]+class="[^"]*url[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i)
-    if (!titleMatch) continue
-
-    const url = (titleMatch[1] ?? '').trim()
-    const title = stripHtml(titleMatch[2] ?? '').trim()
-    if (!title || !url) continue
-
-    // Date — look for datetime attribute or text
-    const dateMatch = articleHtml.match(/<abbr[^>]+class="[^"]*tribe-events-abbr[^"]*"[^>]+title="([^"]+)"/i)
-      || articleHtml.match(/<time[^>]+datetime="([^"]+)"/i)
-      || articleHtml.match(/<span[^>]+class="[^"]*tribe-event-date-start[^"]*"[^>]*>([^<]+)<\/span>/i)
-
+    let date = 'See site'
     let dateISO: string | null = null
-    let dateDisplay = 'See site'
-
-    if (dateMatch) {
-      const rawDate = (dateMatch[1] ?? '').trim()
-      // Try ISO parse
-      const d = new Date(rawDate)
+    if (parsed.startDate) {
+      const d = new Date(parsed.startDate)
       if (!isNaN(d.getTime())) {
         dateISO = d.toISOString()
-        dateDisplay = d.toLocaleDateString('en-US', {
-          weekday: 'short', month: 'short', day: 'numeric',
+        date = d.toLocaleString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
           timeZone: 'Pacific/Honolulu',
-        })
-      } else {
-        dateDisplay = rawDate
+        }).replace(',', ' ·')
       }
     }
 
-    // Location
-    const locationMatch = articleHtml.match(/<address[^>]*>([\s\S]*?)<\/address>/i)
-      || articleHtml.match(/<span[^>]+class="[^"]*tribe-venue[^"]*"[^>]*>([\s\S]*?)<\/span>/i)
-    const location = locationMatch ? stripHtml(locationMatch[1] ?? '').substring(0, 120) : 'Big Island, Hawaii'
+    const location = typeof parsed.location === 'string'
+      ? parsed.location
+      : parsed.location?.name || ''
 
-    // Description
-    const descMatch = articleHtml.match(/<div[^>]+class="[^"]*tribe-events-schedule[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
-      || articleHtml.match(/<div[^>]+class="[^"]*tribe-events-list-event-description[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
-    const description = descMatch ? stripHtml(descMatch[1] ?? '').substring(0, 400) : ''
+    return {
+      title: stripHtml(parsed.name || ''),
+      date,
+      dateISO,
+      location: stripHtml(location),
+      description: stripHtml(parsed.description || ''),
+    }
+  } catch {
+    return {}
+  }
+}
 
-    events.push({ title, url, date: dateDisplay, dateISO, location, description })
+/**
+ * Parse a BigIslandNow events page and extract event data.
+ * Current site markup uses <a class="staticEvent event"> cards plus adjacent JSON-LD.
+ */
+function parseBigIslandNowHtml(html: string): ParsedBigIslandNowEvent[] {
+  const events: ParsedBigIslandNowEvent[] = []
+  const seen = new Set<string>()
+
+  const cardRe = /(?:<script type="application\/ld\+json">([\s\S]*?)<\/script>\s*)?<a[^>]+href="([^"]*\/events\/event\/[^"#?]+[^"]*)"[^>]+class="[^"]*staticEvent[^"]*"[^>]*>([\s\S]*?)<\/a>/gi
+  let match: RegExpExecArray | null
+
+  // eslint-disable-next-line no-cond-assign
+  while ((match = cardRe.exec(html)) !== null) {
+    const jsonLd = (match[1] ?? '').trim()
+    const href = normalizeUrl((match[2] ?? '').trim())
+    const cardHtml = match[3] ?? ''
+    const fromJson = jsonLd ? parseJsonLdBlock(jsonLd) : {}
+
+    const title = stripHtml(
+      cardHtml.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i)?.[1]
+      ?? fromJson.title
+      ?? ''
+    )
+    if (!title || seen.has(href)) continue
+
+    const date = stripHtml(
+      cardHtml.match(/<span[^>]+class="[^"]*eventTime[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.[1]
+      ?? fromJson.date
+      ?? 'See site'
+    )
+    const location = stripHtml(
+      cardHtml.match(/<span[^>]+class="[^"]*subText[^"]*"[^>]*>([\s\S]*?)<\/span>/i)?.[1]
+      ?? fromJson.location
+      ?? 'Big Island, Hawaii'
+    )
+    const description = stripHtml((fromJson.description ?? '').toString()).substring(0, 400)
+
+    events.push({
+      title,
+      url: href,
+      date: date || 'See site',
+      dateISO: fromJson.dateISO ?? null,
+      location: location || 'Big Island, Hawaii',
+      description,
+    })
+    seen.add(href)
   }
 
   return events
@@ -170,34 +216,26 @@ export async function fetchBigIslandNowEvents(
 
     const events: HomegrownEvent[] = parsed
       .filter(e => {
-        // Filter out past events if we have a date
-        if (e.dateISO) {
-          return new Date(e.dateISO) >= now
-        }
+        if (e.dateISO) return new Date(e.dateISO) >= now
         return true
       })
-      .map(e => {
-        const id = `bigislandnow-${slugToId(e.url)}`
-        const category = mapCategory(e.title, e.description)
-
-        return {
-          id,
-          title: e.title,
-          description: e.description || undefined,
-          category,
-          date: e.date,
-          dateISO: e.dateISO ?? undefined,
-          location: e.location || 'Big Island, Hawaii',
-          address: 'Big Island, HI',
-          lat: BIG_ISLAND_LAT,
-          lng: BIG_ISLAND_LNG,
-          organizer: 'BigIslandNow',
-          price: 'See site',
-          url: e.url,
-          source: 'bigislandnow',
-          tags: ['hawaii', 'big island', 'events'],
-        } as unknown as HomegrownEvent
-      })
+      .map(e => ({
+        id: `bigislandnow-${slugToId(e.url)}`,
+        title: e.title,
+        description: e.description || undefined,
+        category: mapCategory(e.title, e.description),
+        date: e.date,
+        dateISO: e.dateISO ?? undefined,
+        location: e.location || 'Big Island, Hawaii',
+        address: 'Big Island, HI',
+        lat: BIG_ISLAND_LAT,
+        lng: BIG_ISLAND_LNG,
+        organizer: 'BigIslandNow',
+        price: 'See site',
+        url: e.url,
+        source: 'bigislandnow',
+        tags: ['hawaii', 'big island', 'events'],
+      }) as unknown as HomegrownEvent)
 
     console.log(`[BigIslandNow] ${events.length} upcoming events scraped`)
     return { events, ...(etag ? { etag } : {}) }

@@ -22,6 +22,7 @@ import { fetchEventbriteSFBayEvents } from '@/lib/sources/eventbrite-sfbay'
 import { fetchChabotIcalEvents, fetchLindsayIcalEvents, fetchBADMIcalEvents, fetchCHNIcalEvents } from '@/lib/sources/wordpress-ical'
 import { fetchSJPLBiblioEvents, fetchOaklandLibraryEvents, fetchSMCLBiblioEvents } from '@/lib/sources/bibliocommons'
 import { fetchHiloPalaceIcalEvents } from '@/lib/sources/hilo-palace-ical'
+import { fetchBigIslandNowEvents } from '@/lib/sources/bigislandnow'
 import type { HomegrownEvent } from '@/lib/types'
 
 export const runtime = 'nodejs'
@@ -50,6 +51,7 @@ const SOURCES: SourceRunner[] = [
   { name: 'smcl-bibliocommons', fetch: fetchSMCLBiblioEvents },
   // Hawaii sources
   { name: 'hilo-palace-ical', fetch: fetchHiloPalaceIcalEvents },
+  { name: 'bigislandnow', fetch: fetchBigIslandNowEvents },
 ]
 
 async function upsertEvents(supabase: ReturnType<typeof createServerClient>, events: HomegrownEvent[]): Promise<number> {

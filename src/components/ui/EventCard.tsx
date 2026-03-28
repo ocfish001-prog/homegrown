@@ -22,6 +22,8 @@ export interface EventCardData {
   isSaved?: boolean
   // Phase 2 additions
   distance?: number // miles
+  lat?: number
+  lng?: number
   price?: string
   url?: string
   source?: string

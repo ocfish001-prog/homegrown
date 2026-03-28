@@ -61,6 +61,19 @@ function unescapeIcal(s: string): string {
   return s.replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\n/g, '\n').replace(/\\\\/g, '\\')
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function buildPalaceEventUrl(summary: string): string {
+  const slug = slugify(summary)
+  return slug ? `https://hilopalace.com/palace-event/${slug}/` : 'https://hilopalace.com/events/'
+}
+
 function extractICalField(vevent: string, field: string): string {
   // Handle folded lines (RFC 5545: continuation lines start with space/tab)
   const unfolded = vevent.replace(/\r?\n[ \t]/g, '')
@@ -137,7 +150,7 @@ export async function fetchHiloPalaceIcalEvents(
       const dtend = extractICalField(vevent, 'DTEND')
       const description = stripHtml(extractICalField(vevent, 'DESCRIPTION')).slice(0, 600)
       const location = extractICalField(vevent, 'LOCATION')
-      const url = extractICalField(vevent, 'URL')
+      const url = extractICalField(vevent, 'URL') || buildPalaceEventUrl(summary)
 
       const startDate = dtstart ? parseICalDate(dtstart) : null
       const endDate = dtend ? parseICalDate(dtend) : null
@@ -163,7 +176,7 @@ export async function fetchHiloPalaceIcalEvents(
         lng: PALACE_LNG,
         organizer: 'Hilo Palace Theater',
         price: 'See site',
-        url: url || 'https://hilopalace.com',
+        url,
         source: 'hilo-palace-ical',
         tags: ['hilo', 'palace theater', 'hawaii', 'arts', 'culture'],
       })

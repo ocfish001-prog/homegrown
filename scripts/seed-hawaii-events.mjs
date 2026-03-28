@@ -576,7 +576,7 @@ EVENTS.push({
   endDate: d(4, 11, 12, 0),
   isFree: false,
   cost: '$10 per child; adults FREE',
-  externalUrl: 'https://www.donkeymill.org',
+  externalUrl: 'https://donkeymillartcenter.org/events/',
   ageRange: 'young_kids',
   relevanceScore: 90,
   isApproved: true,
